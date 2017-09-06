@@ -1,5 +1,5 @@
-#ifndef __TEST_HELPERS_
-#define __TEST_HELPERS_
+#ifndef __TEST_HELPERS__
+#define __TEST_HELPERS__
 
 #include <iostream>
 
@@ -12,7 +12,7 @@ public:
   }
 
   template<typename T>
-  void assert(const T& e1, const T& e2, const char *msg = nullptr) {
+  void tassert(const T& e1, const T& e2, const char *msg = nullptr) {
     if(msg) {
       message(msg);
     }
@@ -27,8 +27,8 @@ public:
     }
   }
 
-  void assert(bool cond = true, const char *msg = nullptr) {
-    assert(cond, true, msg);
+  void tassert(bool cond = true, const char *msg = nullptr) {
+    tassert(cond, true, msg);
   }
 
   void summary() const {
