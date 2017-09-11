@@ -1,6 +1,7 @@
 #include <iostream>
 #include <string>
 #include <sstream>
+#include <list>
 #include "list.h"
 #include "../test_helpers.h"
 
@@ -71,11 +72,14 @@ void test_list(TestHelper& th) {
       std::stringstream ss;
       ss << "s" << i;
       std::string s(ss.str());
-      std::cout << s;
       sl.push_front(s);
-      std::cout << "[" << s << "],";
     }
     th.tassert();
+    {
+      auto a = sl.to_std_list();
+      auto b = std::list<std::string>{"s4", "s3", "s2", "s1", "s0"};
+      th.tassert(a == b, true, "Check complete list");
+    }
     sl.clear();
 
     th.message("Pushing (move) to front");
@@ -83,11 +87,14 @@ void test_list(TestHelper& th) {
       std::stringstream ss;
       ss << "s" << i;
       std::string s(ss.str());
-      std::cout << s;
       sl.push_front(std::move(s));
-      std::cout << "[" << s << "],";
     }
     th.tassert();
+    {
+      auto a = sl.to_std_list();
+      auto b = std::list<std::string>{"s4", "s3", "s2", "s1", "s0"};
+      th.tassert(a == b, true, "Check complete list");
+    }
     sl.clear();
 
     th.message("Pushing (move) to back");
@@ -95,15 +102,24 @@ void test_list(TestHelper& th) {
       std::stringstream ss;
       ss << "s" << i;
       std::string s(ss.str());
-      std::cout << s;
       sl.push_back(std::move(s));
-      std::cout << "[" << s << "],";
     }
     th.tassert();
+    {
+      auto a = sl.to_std_list();
+      auto b = std::list<std::string>{"s0", "s1", "s2", "s3", "s4"};
+      th.tassert(a == b, true, "Check complete list");
+    }
 
     th.message("Copy constructor");
     L<std::string> sl2(sl);
     th.tassert();
+    {
+      auto a = sl.to_std_list();
+      auto b = sl2.to_std_list();
+      th.tassert(a == b, true, "Check complete list");
+      th.tassert(sl.size(), sl2.size(), "Check sizes");
+    }
 
     th.message("Popping from front");
     for(int i = 0; i < 5; ++i) {
@@ -112,8 +128,14 @@ void test_list(TestHelper& th) {
     th.tassert();
 
     th.message("Move constructor");
+    auto std_sl = sl.to_std_list();
     L<std::string> sl3(std::move(sl));
     th.tassert();
+    {
+      auto b = sl3.to_std_list();
+      th.tassert(std_sl == b, true, "Check complete list");
+      th.tassert(std_sl.size(), sl3.size(), "Check sizes");
+    }
 
     th.message("Popping from front");
     for(int i = 0; i < 5; ++i) {
@@ -122,8 +144,6 @@ void test_list(TestHelper& th) {
     th.tassert();
     th.tassert(sl3.size(), (std::size_t)0, "Has been emptied");
   }
-
-
 }
 
 int main(int argc, char const *argv[]) {
@@ -131,6 +151,9 @@ int main(int argc, char const *argv[]) {
 
   std::cout << "[[ Singly-linked Lists ]]" << std::endl << std::endl;
   test_list<SinglyLinkedList>(th);
+
+  std::cout << "\n[[ Doubly-linked Lists ]]" << std::endl << std::endl;
+  test_list<DoublyLinkedList>(th);
 
   th.summary();
 
