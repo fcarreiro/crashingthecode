@@ -14,12 +14,13 @@ public:
 
   std::size_t size() const;
   std::size_t capacity() const;
-  bool is_empty() const;
+  bool empty() const;
   T& at(std::size_t i) const;
+  T& back() const;
   T& operator [](std::size_t i) const;
-  void push(const T& e);
+  void push_back(const T& e);
   void insert(std::size_t i, const T& e);
-  T pop();
+  T pop_back();
   T del(std::size_t i);
   std::size_t find(const T& e) const;
   std::size_t remove(const T& e);
@@ -54,13 +55,18 @@ std::size_t Vector<T>::capacity() const {
 }
 
 template<typename T>
-bool Vector<T>::is_empty() const {
+bool Vector<T>::empty() const {
   return size() == 0;
 }
 
 template<typename T>
 T& Vector<T>::at(std::size_t i) const {
   return _arr[i]; // or *(_arr + i)
+}
+
+template<typename T>
+T& Vector<T>::back() const {
+  return _arr[size() - 1];
 }
 
 template<typename T>
@@ -106,7 +112,7 @@ void Vector<T>::insert(std::size_t i, const T& e) {
 }
 
 template<typename T>
-void Vector<T>::push(const T& e) {
+void Vector<T>::push_back(const T& e) {
   insert(size(), e);
 }
 
@@ -134,7 +140,7 @@ T Vector<T>::del(std::size_t i) {
 }
 
 template<typename T>
-T Vector<T>::pop() {
+T Vector<T>::pop_back() {
   return del(size() - 1);
 }
 

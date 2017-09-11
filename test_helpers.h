@@ -12,12 +12,14 @@ public:
   }
 
   template<typename T>
-  void tassert(const T& e1, const T& e2, const char *msg = nullptr) {
-    if(msg) {
+  void tassert(const T& e1, const T& e2, const char *msg = nullptr, bool silent = false) {
+    if(msg && !silent) {
       message(msg);
     }
     if (e1 == e2) {
-      std::cout << tick() << std::endl;
+      if(!silent) {
+        std::cout << tick() << std::endl;
+      }
       _ok++;
     }
     else {
