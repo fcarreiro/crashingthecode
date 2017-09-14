@@ -282,9 +282,9 @@ public:
   T& value_at(std::size_t i); // O(i)
   const T& value_at(std::size_t i) const; // O(i)
   T& front(); // O(1)
-  T& back(); // O(n)
+  T& back(); // O(1)
   const T& front() const; // O(1)
-  const T& back() const; // O(n)
+  const T& back() const; // O(1)
 
   bool empty() const; // O(1)
   std::size_t size() const; // O(1)
@@ -293,12 +293,12 @@ public:
   void insert_at(std::size_t i, T&& v); // O(i)
   void push_front(const T& v); // O(1)
   void push_front(T&& v); // O(1)
-  void push_back(const T& v); // O(n)
-  void push_back(T&& v); // O(n)
+  void push_back(const T& v); // O(1)
+  void push_back(T&& v); // O(1)
 
   T remove_at(std::size_t i); // O(i)
   T pop_front(); // O(1)
-  T pop_back(); // O(n)
+  T pop_back(); // O(1)
 
   void clear(); // O(n)
   std::list<T> to_std_list() const; // O(n)
