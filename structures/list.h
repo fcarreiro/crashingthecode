@@ -279,6 +279,8 @@ public:
   DoublyLinkedList(DoublyLinkedList&& o); // O(1)
   ~DoublyLinkedList(); // O(n)
 
+  DoublyLinkedList& operator=(const DoublyLinkedList& l);
+
   T& value_at(std::size_t i); // O(i)
   const T& value_at(std::size_t i) const; // O(i)
   T& front(); // O(1)
@@ -317,6 +319,7 @@ private:
   std::size_t _size;
 
   Node* get_node_at(std::size_t i) const;
+  void push_all(const DoublyLinkedList& o);
 };
 
 template<typename T>
@@ -333,6 +336,27 @@ DoublyLinkedList<T>::DoublyLinkedList() : _head(nullptr), _tail(nullptr), _size(
 
 template<typename T>
 DoublyLinkedList<T>::DoublyLinkedList(const DoublyLinkedList& o) : _head(nullptr), _tail(nullptr), _size(0) {
+  push_all(o);
+}
+
+template<typename T>
+DoublyLinkedList<T>::DoublyLinkedList(DoublyLinkedList&& o) : _head(o._head), _tail(o._tail), _size(o._size) {
+  o._head = nullptr;
+  o._tail = nullptr;
+  o._size = 0;
+}
+
+template<typename T>
+DoublyLinkedList<T>& DoublyLinkedList<T>::operator=(const DoublyLinkedList& l) {
+  if(this != &l) {
+    clear();
+    push_all(l);
+  }
+  return *this;
+}
+
+template<typename T>
+void DoublyLinkedList<T>::push_all(const DoublyLinkedList& o) {
   Node* oit = o._head;
   Node** current = &_head;
   Node* last = nullptr;
@@ -345,13 +369,6 @@ DoublyLinkedList<T>::DoublyLinkedList(const DoublyLinkedList& o) : _head(nullptr
     oit = oit->next;
   }
   _tail = last;
-}
-
-template<typename T>
-DoublyLinkedList<T>::DoublyLinkedList(DoublyLinkedList&& o) : _head(o._head), _tail(o._tail), _size(o._size) {
-  o._head = nullptr;
-  o._tail = nullptr;
-  o._size = 0;
 }
 
 template<typename T>

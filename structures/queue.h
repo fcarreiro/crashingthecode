@@ -26,8 +26,21 @@ public:
 template<typename T>
 class ListQueue : Queue<T> {
 public:
+  ListQueue() = default;
+
+  ListQueue(const ListQueue& l) : _list(l._list) {
+  }
+
+  ListQueue(ListQueue&& rvrl) : _list(std::move(rvrl._list)) {
+  }
+
   void enqueue(const T& v) { // O(1)
     _list.push_back(v);
+  }
+
+  ListQueue& operator=(const ListQueue& l) {
+    _list = l._list;
+    return *this;
   }
 
   void enqueue(T&& rvr) { // O(1)
@@ -72,15 +85,37 @@ public:
   _size(0), _head(0), _tail(0) {
   }
 
+  CircularBufferQueue(CircularBufferQueue&& rvr) :
+  _buffer(rvr._buffer), _capacity(rvr._capacity),
+  _size(rvr._size), _head(rvr._head), _tail(rvr._tail) {
+    rvr._buffer = nullptr;
+    rvr._size = 0;
+    rvr._head = 0;
+    rvr._tail = 0;
+  }
+
+  CircularBufferQueue(const CircularBufferQueue& q) :
+  _buffer(new T[q._capacity]), _capacity(q._capacity),
+  _size(0), _head(0), _tail(0) {
+    enqueue_all(q);
+  }
+
   ~CircularBufferQueue() {
     delete[] _buffer;
   }
 
-  // CircularBufferQueue(const CircularBufferQueue& q) :
-  // _buffer(new T[q._capacity]{q._buffer}), _capacity(q._capacity),
-  // _size(q._size), _head(q._head), _tail(q._tail) {
-  //   aaaaa
-  // }
+  CircularBufferQueue& operator=(const CircularBufferQueue& q) {
+    if(this != &q) {
+      delete[] _buffer;
+      _buffer = new T[q._capacity];
+      _capacity = q._capacity;
+      _size = 0;
+      _head = 0;
+      _tail = 0;
+      enqueue_all(q);
+    }
+    return *this;
+  }
 
   void enqueue(const T& v) { // O(1)
     // we need to always have at least one free slot
@@ -128,6 +163,13 @@ public:
       q.push(_buffer[it]);
     }
     return q;
+  }
+
+private:
+  void enqueue_all(const CircularBufferQueue& q) {
+    for(auto it = q._head; it != q._tail; it = (it + 1) % q._capacity) {
+      enqueue(q._buffer[it]);
+    }
   }
 
 private:

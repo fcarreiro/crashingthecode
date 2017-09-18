@@ -30,6 +30,34 @@ void test_queue(TestHelper& th) {
     th.tassert(q.size(), (std::size_t)2, "Size is 2");
 
     {
+      th.message("Copy construction");
+      ConcreteQueue<int> cq(q);
+      th.tassert();
+      th.tassert(q.to_std_queue() == cq.to_std_queue(), true, "Equal queues");
+      th.message("Destruction");
+    }
+    th.tassert();
+
+    {
+      th.message("Operator=");
+      ConcreteQueue<int> oeq;
+      oeq = q;
+      th.tassert();
+      th.tassert(q.to_std_queue() == oeq.to_std_queue(), true, "Equal queues");
+      th.message("Destruction");
+    }
+    th.tassert();
+
+    {
+      th.message("Move semantics construction");
+      ConcreteQueue<int> mq(ConcreteQueue<int>{q});
+      th.tassert();
+      th.tassert(q.to_std_queue() == mq.to_std_queue(), true, "Equal queues");
+      th.message("Destruction");
+    }
+    th.tassert();
+
+    {
       th.message("Pop");
       int last = q.dequeue();
       th.tassert();
