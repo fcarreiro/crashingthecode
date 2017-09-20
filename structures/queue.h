@@ -24,21 +24,21 @@ public:
 
 // Unbounded queue based on singly-linked list
 template<typename T>
-class ListQueue : Queue<T> {
+class ListQueue : public Queue<T> {
 public:
   ListQueue() = default;
 
-  ListQueue(const ListQueue& l) : _list(l._list) {
+  ListQueue(const ListQueue& l) : _list(l._list) { // O(n)
   }
 
-  ListQueue(ListQueue&& rvrl) : _list(std::move(rvrl._list)) {
+  ListQueue(ListQueue&& rvrl) : _list(std::move(rvrl._list)) { // O(1)
   }
 
   void enqueue(const T& v) { // O(1)
     _list.push_back(v);
   }
 
-  ListQueue& operator=(const ListQueue& l) {
+  ListQueue& operator=(const ListQueue& l) { // O(n)
     _list = l._list;
     return *this;
   }
@@ -77,17 +77,17 @@ private:
 // some kind of vector and resize and reposition the items when the
 // capacity is met
 template<typename T>
-class CircularBufferQueue : Queue<T> {
+class CircularBufferQueue : public Queue<T> {
 public:
   CircularBufferQueue(std::size_t capacity = 1000) :
   _buffer(new T[std::max<std::size_t>(capacity, 1)]),
   _capacity(std::max<std::size_t>(capacity, 1)),
-  _size(0), _head(0), _tail(0) {
+  _size(0), _head(0), _tail(0) { // O(capacity)
   }
 
   CircularBufferQueue(CircularBufferQueue&& rvr) :
   _buffer(rvr._buffer), _capacity(rvr._capacity),
-  _size(rvr._size), _head(rvr._head), _tail(rvr._tail) {
+  _size(rvr._size), _head(rvr._head), _tail(rvr._tail) { // O(1)
     rvr._buffer = nullptr;
     rvr._size = 0;
     rvr._head = 0;
@@ -96,7 +96,7 @@ public:
 
   CircularBufferQueue(const CircularBufferQueue& q) :
   _buffer(new T[q._capacity]), _capacity(q._capacity),
-  _size(0), _head(0), _tail(0) {
+  _size(0), _head(0), _tail(0) { // O(n)
     enqueue_all(q);
   }
 
@@ -104,7 +104,7 @@ public:
     delete[] _buffer;
   }
 
-  CircularBufferQueue& operator=(const CircularBufferQueue& q) {
+  CircularBufferQueue& operator=(const CircularBufferQueue& q) { // O(n)
     if(this != &q) {
       delete[] _buffer;
       _buffer = new T[q._capacity];
@@ -166,7 +166,7 @@ public:
   }
 
 private:
-  void enqueue_all(const CircularBufferQueue& q) {
+  void enqueue_all(const CircularBufferQueue& q) { // O(n)
     for(auto it = q._head; it != q._tail; it = (it + 1) % q._capacity) {
       enqueue(q._buffer[it]);
     }
