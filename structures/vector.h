@@ -82,7 +82,7 @@ std::size_t Vector<T>::resize(std::size_t new_capacity) {
   }
 
   T* newarr = new T[new_capacity];
-  std::copy(_arr, _arr + size(), newarr);
+  std::move(_arr, _arr + size(), newarr);
   delete[] _arr;
   _arr = newarr;
   _capacity = new_capacity;
@@ -100,7 +100,7 @@ void Vector<T>::insert(std::size_t i, const T& e) {
   // inserting at the end (offset "size") is ok
   // undefined behaviour if i > size or i < 0
   if(i != size()) {
-    std::copy_backward(
+    std::move_backward(
       _arr + i,
       _arr + size(),
       _arr + size() + 1
@@ -118,13 +118,13 @@ void Vector<T>::push_back(const T& e) {
 
 template<typename T>
 T Vector<T>::del(std::size_t i) {
-  T ret = _arr[i];//std::move(_arr[i]);
+  T ret = _arr[i];
 
   // shift elements if removing from the middle,
   // inserting at the end (offset "size") is ok
   // undefined behaviour if i > size or i < 0
   if(i != size() - 1) {
-    std::copy(
+    std::move(
       _arr + i + 1,
       _arr + size(),
       _arr + i
