@@ -62,7 +62,7 @@ public:
   std::queue<T> to_std_queue() const { // O(n)
     // standard queue is based on deque which has O(1) push_back
     std::queue<T> q;
-    for(auto e : _list.to_std_list()) {
+    for(const auto& e : _list.to_std_list()) {
       q.push(e);
     }
     return q;
