@@ -132,7 +132,10 @@ T Vector<T>::del(std::size_t i) {
   }
 
   _size--;
-  if(size() < capacity() / 2) {
+  // the shrinking threshold constant (1/4) should be strictly smaller than the
+  // shrinking and growing constant (1/2) for the operations
+  // to be O(1) amortized
+  if(size() < capacity() / 4) {
     resize(capacity() / 2);
   }
 
