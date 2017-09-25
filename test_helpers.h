@@ -23,8 +23,8 @@ public:
       _ok++;
     }
     else {
-      std::cout << cross() << " (" << "expected " << e2
-                << " got " << e1 << ")" << std::endl;
+      std::cout << cross() << " (" << "expected " << e1
+                << " got " << e2 << ")" << std::endl;
       _failed++;
     }
   }
