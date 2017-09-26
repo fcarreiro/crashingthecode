@@ -28,13 +28,15 @@ public:
   virtual bool empty() const = 0;
 
   virtual std::unordered_map<K,T> to_std_unordered_map() const = 0;
+
+  using item_type = std::pair<const K,T>;
 };
 
 template<typename K, typename T, class Hash = std::hash<K>>
 class ChainedUnorderedMap : public UnorderedMap<K,T> {
 public:
-  using item_type = std::pair<K,T>;
-
+  using item_type = typename UnorderedMap<K,T>::item_type;
+  
   ChainedUnorderedMap(const std::size_t bucket_size = 13); // O(bucket_size)
   ChainedUnorderedMap(const ChainedUnorderedMap& other); // O(max(other.size()))
   ChainedUnorderedMap(ChainedUnorderedMap&& rvr); // O(1)
@@ -105,7 +107,14 @@ ChainedUnorderedMap<K,T,Hash>::ChainedUnorderedMap(std::initializer_list<item_ty
 template<typename K, typename T, class Hash>
 ChainedUnorderedMap<K,T,Hash>& ChainedUnorderedMap<K,T,Hash>::operator=(const ChainedUnorderedMap& other) {
   if(this != &other) {
-    _v = other._v;
+    // "_v = other._v" gives compile-time error because when copying the lists
+    // inside the vector the STD seems to be first creating each "item_type"
+    // and then assigning. This fails because one of the coords is const
+    _v.clear();
+    _v.resize(other.bucket_count());
+    for(std::size_t i = 0; i < other.bucket_count(); ++i) {
+      std::copy(other._v[i].begin(), other._v[i].end(), std::back_inserter(_v[i]));
+    }
     _size = other._size;
   }
   return *this;
