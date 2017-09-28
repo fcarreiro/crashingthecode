@@ -60,7 +60,7 @@ _size(l.size()), _capacity(l.size()) {
   // http://en.cppreference.com/w/cpp/language/list_initialization
   // "If the braced-init-list is empty and T is a class type with a
   // default constructor, value-initialization is performed."
-  std::move(l.begin(), l.end(), _arr);
+  std::copy(l.begin(), l.end(), _arr);
 }
 
 template<typename T>

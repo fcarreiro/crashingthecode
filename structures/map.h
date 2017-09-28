@@ -11,6 +11,7 @@
 #include <stdexcept>
 #include <initializer_list>
 
+// unordered map interface
 template<typename K, typename T>
 class UnorderedMap {
 public:
@@ -32,11 +33,12 @@ public:
   using item_type = std::pair<const K,T>;
 };
 
+// unordered map with chained buckets
 template<typename K, typename T, class Hash = std::hash<K>>
 class ChainedUnorderedMap : public UnorderedMap<K,T> {
 public:
   using item_type = typename UnorderedMap<K,T>::item_type;
-  
+
   ChainedUnorderedMap(const std::size_t bucket_size = 13); // O(bucket_size)
   ChainedUnorderedMap(const ChainedUnorderedMap& other); // O(max(other.size()))
   ChainedUnorderedMap(ChainedUnorderedMap&& rvr); // O(1)
@@ -66,19 +68,20 @@ private:
   std::size_t get_bucket_for(const K& key) const;
   void rehash(std::size_t new_size);
 
+private:
+  using _item_type = std::pair<K,T>;
+
   float _min_load_factor = 0.15;
   float _max_load_factor = 0.75;
 
-private:
   // TODO: I'm using std::list and vector because I don't want to (yet)
   // implement iterators for my own types
-  std::vector<std::list<item_type>> _v;
+  std::vector<std::list<_item_type>> _v;
   std::size_t _size;
 };
 
 template<typename K, typename T, class Hash>
-ChainedUnorderedMap<K,T,Hash>::ChainedUnorderedMap(const std::size_t bucket_size) : _size(0) {
-  _v.resize(std::max<std::size_t>(bucket_size, 1));
+ChainedUnorderedMap<K,T,Hash>::ChainedUnorderedMap(const std::size_t bucket_size) : _v(std::max<std::size_t>(bucket_size, 1)), _size(0) {
 }
 
 template<typename K, typename T, class Hash>
@@ -97,24 +100,16 @@ ChainedUnorderedMap<K,T,Hash>::ChainedUnorderedMap(ChainedUnorderedMap&& rvr) : 
 }
 
 template<typename K, typename T, class Hash>
-ChainedUnorderedMap<K,T,Hash>::ChainedUnorderedMap(std::initializer_list<item_type> l) : _size(0) {
-  _v.resize(1);
+ChainedUnorderedMap<K,T,Hash>::ChainedUnorderedMap(std::initializer_list<item_type> l) : _v(1), _size(0) {
   for(auto& item : l) {
-    operator[](std::move(std::get<0>(item))) = std::move(std::get<1>(item));
+    operator[](std::get<0>(item)) = std::get<1>(item);
   }
 }
 
 template<typename K, typename T, class Hash>
 ChainedUnorderedMap<K,T,Hash>& ChainedUnorderedMap<K,T,Hash>::operator=(const ChainedUnorderedMap& other) {
   if(this != &other) {
-    // "_v = other._v" gives compile-time error because when copying the lists
-    // inside the vector the STD seems to be first creating each "item_type"
-    // and then assigning. This fails because one of the coords is const
-    _v.clear();
-    _v.resize(other.bucket_count());
-    for(std::size_t i = 0; i < other.bucket_count(); ++i) {
-      std::copy(other._v[i].begin(), other._v[i].end(), std::back_inserter(_v[i]));
-    }
+    _v = other._v;
     _size = other._size;
   }
   return *this;
@@ -133,7 +128,7 @@ ChainedUnorderedMap<K,T,Hash>& ChainedUnorderedMap<K,T,Hash>::operator=(ChainedU
 
 template<typename K, typename T, class Hash>
 T& ChainedUnorderedMap<K,T,Hash>::at(const K& key) {
-  std::list<item_type>& list = _v[get_bucket_for(key)];
+  std::list<_item_type>& list = _v[get_bucket_for(key)];
   // pair handling is awful in C++11/14, I hope this becomes mainstream soon
   // https://skebanga.github.io/structured-bindings/
   for(auto& key_value : list) {
@@ -156,7 +151,7 @@ T& ChainedUnorderedMap<K,T,Hash>::operator[](const K& key) {
 
 template<typename K, typename T, class Hash>
 T& ChainedUnorderedMap<K,T,Hash>::operator[](K&& key) {
-  std::list<item_type>* list = &_v[get_bucket_for(key)];
+  std::list<_item_type>* list = &_v[get_bucket_for(key)];
 
   // pair handling is awful in C++11/14, I hope this becomes mainstream soon
   // https://skebanga.github.io/structured-bindings/
@@ -181,7 +176,7 @@ T& ChainedUnorderedMap<K,T,Hash>::operator[](K&& key) {
 
 template<typename K, typename T, class Hash>
 const T& ChainedUnorderedMap<K,T,Hash>::at(const K& key) const {
-  const std::list<item_type>& list = _v[get_bucket_for(key)];
+  const std::list<_item_type>& list = _v[get_bucket_for(key)];
   // pair handling is awful in C++11/14, I hope this becomes mainstream soon
   // https://skebanga.github.io/structured-bindings/
   for(const auto& key_value : list) {
@@ -195,7 +190,7 @@ const T& ChainedUnorderedMap<K,T,Hash>::at(const K& key) const {
 
 template<typename K, typename T, class Hash>
 void ChainedUnorderedMap<K,T,Hash>::erase(const K& key) {
-  std::list<item_type>& list = _v[get_bucket_for(key)];
+  std::list<_item_type>& list = _v[get_bucket_for(key)];
   // pair handling is awful in C++11/14, I hope this becomes mainstream soon
   // https://skebanga.github.io/structured-bindings/
   for(auto it = list.begin(); it != list.end(); ++it) {
