@@ -378,7 +378,8 @@ T& OpenAddressUnorderedMap<K,T,Hash>::operator[](K&& key) {
   auto bucket = get_bucket_for(key, true);
 
   // if found, we are done
-  if(bucket >= 0 && _occupied[bucket]) {
+  assert(bucket < bucket_count());
+  if(_occupied[bucket]) {
     return std::get<1>(_buckets[bucket]);
   }
 
@@ -391,7 +392,8 @@ T& OpenAddressUnorderedMap<K,T,Hash>::operator[](K&& key) {
   // (2) no matter if we rehashed or not, find a place to set the key;
   // it could be a deleted slot
   bucket = get_bucket_for(key, false);
-  assert(bucket >= 0 && (!_occupied[bucket] || _deleted[bucket]));
+  assert(bucket < bucket_count());
+  assert(!_occupied[bucket] || _deleted[bucket]);
 
   std::get<0>(_buckets[bucket]) = std::move(key);
   _occupied[bucket] = true;
@@ -429,16 +431,17 @@ std::size_t OpenAddressUnorderedMap<K,T,Hash>::get_bucket_for(const K& key, bool
     i = (i + 1) % bc;
   } while (i != start);
 
-  // table is full!
-  return -1;
+  // table is full! this shouldn't happen ;)
+  return bc;
 }
 
 template<typename K, typename T, class Hash>
 void OpenAddressUnorderedMap<K,T,Hash>::erase(const K& key) {
   // try to find key, skipping deleted buckets
   auto bucket = get_bucket_for(key, true);
+  assert(bucket < bucket_count());
 
-  if(bucket >= 0 && _occupied[bucket]) {
+  if(_occupied[bucket]) {
     // _occupied[bucket] = true;
     _deleted[bucket] = true;
     _size--;
