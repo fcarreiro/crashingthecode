@@ -238,6 +238,15 @@ int main(int argc, char const *argv[]) {
   std::cout << "\n[[ Chained Unordered Map (string, string) ]]" << std::endl << std::endl;
   test_unordered_map<std::string, std::string, ChainedUnorderedMap>(th, stringGen, stringGen);
 
+  std::cout << "\n[[ OpenAddress Unordered Map (int, int) ]]" << std::endl << std::endl;
+  test_unordered_map<int, int, OpenAddressUnorderedMap>(th, intGen, intGen);
+
+  std::cout << "\n[[ OpenAddress Unordered Map (string, int) ]]" << std::endl << std::endl;
+  test_unordered_map<std::string, int, OpenAddressUnorderedMap>(th, stringGen, intGen);
+
+  std::cout << "\n[[ OpenAddress Unordered Map (string, string) ]]" << std::endl << std::endl;
+  test_unordered_map<std::string, std::string, OpenAddressUnorderedMap>(th, stringGen, stringGen);
+
   th.summary();
   return 0;
 }

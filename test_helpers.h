@@ -13,17 +13,21 @@ public:
 
   template<typename T>
   void tassert(const T& e1, const T& e2, const char *msg = nullptr, bool silent = false) {
-    if(msg && !silent) {
-      message(msg);
-    }
     if (e1 == e2) {
       if(!silent) {
+        if(msg) {
+          std::cout << msg << "... ";
+        }
         std::cout << tick() << std::endl;
       }
       _ok++;
     }
     else {
-      std::cout << cross() << " (" << "expected " << e1
+      if(msg) {
+        std::cout << msg << "... ";
+      }
+      std::cout << cross()
+                << " (" << "expected " << e1
                 << " got " << e2 << ")" << std::endl;
       _failed++;
     }
