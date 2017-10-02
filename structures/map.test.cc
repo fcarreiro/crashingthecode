@@ -143,7 +143,6 @@ void test_unordered_map(TestHelper& th, Generator<K>& GenKey, Generator<T>& GenV
     th.tassert(ok, true);
   }
 
-  std::srand((unsigned int)std::time(0));
   {
     ConcreteMap<K, T> m;
     std::unordered_map<K, T> stdm;
@@ -226,6 +225,7 @@ void test_unordered_map(TestHelper& th, Generator<K>& GenKey, Generator<T>& GenV
 
 int main(int argc, char const *argv[]) {
   TestHelper th;
+  std::srand((unsigned int)std::time(0));
   auto intGen = GenInt();
   auto stringGen = GenString();
 
