@@ -2,6 +2,7 @@
 #include <cstddef>
 #include <iostream>
 #include <vector>
+#include <stack>
 #include <algorithm>
 #include "../test_helpers.h"
 
@@ -53,6 +54,57 @@ void sort_selection(ArrayLike& v) {
   }
 }
 
+template<class T, class ArrayLike>
+std::size_t sort_quick_partition(ArrayLike& v, std::size_t p, std::size_t r) {
+  // v[r] = x is the pivot
+  // all [p..i) <= x
+  // all [i..j) > x
+  // [j..r] unrestricted
+
+  // randomize pivot
+  std::swap(v[p + (std::rand() % (r-p+1))], v[r]);
+  T pivot = v[r];
+
+  std::size_t i = p;
+
+  for (std::size_t j = p; j <= r; ++j) {
+    if (v[j] <= pivot) {
+      // put in the first segment
+      std::swap(v[j], v[i]);
+      i++;
+    }
+  }
+
+  return i - 1;
+}
+
+template<class T, class ArrayLike>
+void sort_quick(ArrayLike& v) {
+  // as we are using UNSIGNED size_t, we need size to be >0 for size-1 to
+  // make sense
+  if (v.empty()) {
+    return;
+  }
+
+  std::stack<std::pair<std::size_t, std::size_t>> s;
+  s.push({ 0, v.size() - 1 });
+
+  while (!s.empty()) {
+    std::size_t p, r;
+    std::tie(p, r) = s.top();
+    s.pop();
+    if (p < r) {
+      auto pivot_idx = sort_quick_partition<T,ArrayLike>(v, p, r);
+      if (pivot_idx > p) {
+        s.push({ p, pivot_idx - 1 });
+      }
+      if (pivot_idx < r) {
+        s.push({ pivot_idx + 1, r });
+      }
+    }
+  }
+}
+
 void test_sort(TestHelper& th, std::function<void(std::vector<int>&)> my_sort) {
   th.message("Testing on random vectors");
   for(auto i = 0; i < 2000; ++i) {
@@ -78,6 +130,9 @@ int main(int argc, char const *argv[]) {
 
   std::cout << "\n[[ Selection Sort ]]" << std::endl << std::endl;
   test_sort(th, sort_selection<int, std::vector<int>>);
+
+  std::cout << "\n[[ Quick Sort ]]" << std::endl << std::endl;
+  test_sort(th, sort_quick<int, std::vector<int>>);
 
   th.summary();
   return 0;
