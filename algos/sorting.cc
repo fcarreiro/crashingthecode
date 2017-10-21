@@ -105,6 +105,41 @@ void sort_quick(ArrayLike& v) {
   }
 }
 
+template<class T, class ArrayLike>
+void sort_merge_aux(ArrayLike& v, ArrayLike& extrav, std::size_t p, std::size_t r) {
+  if(p < r) {
+    auto mid = std::ceil((p + r) / 2);
+    sort_merge_aux<T,ArrayLike>(v, extrav, p, mid);
+    if (mid < r) {
+      sort_merge_aux<T,ArrayLike>(v, extrav, mid + 1, r);
+    }
+
+    // merge
+    auto left = p;
+    auto right = mid + 1;
+    for (auto i = p; i <= r; ++i) {
+      if (right > r || (left <= mid && v[left] <= v[right])) {
+        extrav[i] = v[left];
+        left++;
+      } else {
+        extrav[i] = v[right];
+        right++;
+      }
+    }
+    std::move(extrav.begin() + p, extrav.begin() + r + 1, v.begin() + p);
+  }
+}
+
+template<class T, class ArrayLike>
+void sort_merge(ArrayLike& v) {
+  if (v.empty()) {
+    return;
+  }
+
+  ArrayLike extrav{v};
+  sort_merge_aux<T,ArrayLike>(v, extrav, 0, v.size() - 1);
+}
+
 void test_sort(TestHelper& th, std::function<void(std::vector<int>&)> my_sort) {
   th.message("Testing on random vectors");
   for(auto i = 0; i < 2000; ++i) {
@@ -133,6 +168,9 @@ int main(int argc, char const *argv[]) {
 
   std::cout << "\n[[ Quick Sort ]]" << std::endl << std::endl;
   test_sort(th, sort_quick<int, std::vector<int>>);
+
+  std::cout << "\n[[ Merge Sort ]]" << std::endl << std::endl;
+  test_sort(th, sort_merge<int, std::vector<int>>);
 
   th.summary();
   return 0;
