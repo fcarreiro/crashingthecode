@@ -5,6 +5,7 @@
 #include <stack>
 #include <algorithm>
 #include "../test_helpers.h"
+#include "../structures/heap.h"
 
 template<class T, class ArrayLike>
 void sort_insertion(ArrayLike& v) {
@@ -140,6 +141,18 @@ void sort_merge(ArrayLike& v) {
   sort_merge_aux<T,ArrayLike>(v, extrav, 0, v.size() - 1);
 }
 
+template<class T, class ArrayLike>
+void sort_heap(ArrayLike& v) {
+  if (v.empty()) {
+    return;
+  }
+
+  Heap<T>::make_heap(v, v.size() - 1);
+  for (std::size_t i = v.size(); i > 0; --i) {
+    Heap<T>::pop_top(v, i - 1);
+  }
+}
+
 void test_sort(TestHelper& th, std::function<void(std::vector<int>&)> my_sort) {
   th.message("Testing on random vectors");
   for(auto i = 0; i < 2000; ++i) {
@@ -171,6 +184,9 @@ int main(int argc, char const *argv[]) {
 
   std::cout << "\n[[ Merge Sort ]]" << std::endl << std::endl;
   test_sort(th, sort_merge<int, std::vector<int>>);
+
+  std::cout << "\n[[ Heap Sort ]]" << std::endl << std::endl;
+  test_sort(th, sort_heap<int, std::vector<int>>);
 
   th.summary();
   return 0;
