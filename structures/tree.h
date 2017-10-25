@@ -215,9 +215,11 @@ void BinarySearchTree<T>::_remove(Node** nptr) {
 template<typename T>
 void BinarySearchTree<T>::_visit_nodes_bfs(Node* n, std::function<void(Node*)> f) {
   if (n != nullptr) {
-    std::queue<Node*> q = {n};
+    std::queue<Node*> q;
+    q.push(n);
     while (!q.empty()) {
-      auto current = q.pop();
+      auto current = q.front();
+      q.pop();
       if (current != nullptr) {
         f(current);
         q.push(current->left);
