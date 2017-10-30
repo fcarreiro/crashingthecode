@@ -7,6 +7,8 @@
 #include <stack>
 #include <unordered_set>
 #include <unordered_map>
+#include <queue>
+#include <vector>
 
 // based on http://www.boost.org/doc/libs/1_65_1/libs/graph/doc/BFSVisitor.html
 template<class G>
@@ -180,6 +182,53 @@ void dfs(const G& g, vertex_type v, _Visitor visitor) {
       visitor.finish_vertex(top, g);
     }
   }
+}
+
+// Dijkstra
+template<class WG, typename vertex_type>
+std::unordered_map<vertex_type, std::size_t> dijkstra(const WG& g, vertex_type s, vertex_type u) {
+  typedef std::pair<vertex_type, std::size_t> vertex_dist;
+  auto cmp = [](vertex_dist a, vertex_dist b) {
+    return a.second > b.second;
+  };
+  std::priority_queue<vertex_dist, std::vector<vertex_dist>, decltype(cmp)> q(cmp);
+  std::unordered_map<vertex_type, std::size_t> distance;
+  std::unordered_set<vertex_type> done;
+
+  q.push({ s, 0 });
+  distance[s] = 0;
+
+  while (!q.empty()) {
+    vertex_dist vd = q.top();
+    q.pop();
+    auto x = vd.first;
+    auto dx = vd.second;
+    assert(dx == distance[x]);
+
+    // there could be duplicates because we don't have decrease_key; see (*)
+    if (done.count(x) == 0) {
+      // std::cout << "current: " << x << std::endl;
+      // mark x as finished
+      done.insert(x);
+
+      // relax adjacents
+      for (auto edge_it = g.adjacent(x); !edge_it.end(); ++edge_it) {
+        auto edge = *edge_it;
+        auto target = edge.first.second;
+        auto weight = edge.second;
+        if (
+          distance.count(target) == 0 ||
+          dx + weight < distance[target]
+        ) {
+          distance[target] = dx + weight;
+          q.push({ target, distance[target] }); // (*)
+          // std::cout << "distance[" << target << "] = " << distance[target] << std::endl;
+        }
+      }
+    }
+  }
+
+  return distance;
 }
 
 #endif
