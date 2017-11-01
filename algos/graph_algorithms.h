@@ -303,4 +303,66 @@ std::list<std::unordered_set<vertex_type>> undirected_connected_components(const
   return ret;
 }
 
+template<class G, typename vertex_type>
+bool has_cycle(const G& g) {
+  bool cycle_present = false;
+  std::unordered_set<vertex_type> remaining{g.vertices()};
+
+  struct CycleDFSVisitor : public DFSVisitor<G> {
+    CycleDFSVisitor(std::unordered_set<vertex_type>& rem, bool& cp) : _cp(cp), _rem(rem) {
+    }
+
+    void start_vertex(vertex_type v, const G& g) {
+      _rem.erase(v);
+    }
+
+    void back_edge(typename DFSVisitor<G>::edge_type e, const G& g) {
+      _cp = true;
+    }
+
+    bool& _cp;
+    std::unordered_set<vertex_type>& _rem;
+  };
+
+  CycleDFSVisitor visitor(remaining, cycle_present);
+
+  while (!remaining.empty() && !cycle_present) {
+    auto s = *remaining.begin();
+    dfs(g, s, visitor);
+  }
+
+  return cycle_present;
+}
+
+template<class G, typename vertex_type>
+std::list<vertex_type> topological_sort(const G& g) {
+  std::list<vertex_type> ret;
+  std::unordered_set<vertex_type> remaining{g.vertices()};
+
+  assert(!has_cycle(g));
+
+  struct TopoDFSVisitor : public DFSVisitor<G> {
+    TopoDFSVisitor(std::unordered_set<vertex_type>& rem, std::list<vertex_type>& rret) :
+    _rem(rem), _ret(rret) {
+    }
+
+    void start_vertex(vertex_type v, const G& g) {
+      _rem.erase(v);
+      _ret.push_front(v);
+    }
+
+    std::unordered_set<vertex_type>& _rem;
+    std::list<vertex_type>& _ret;
+  };
+
+  TopoDFSVisitor visitor(remaining, ret);
+
+  while (!remaining.empty()) {
+    auto s = *remaining.begin();
+    dfs(g, s, visitor);
+  }
+
+  return ret;
+}
+
 #endif

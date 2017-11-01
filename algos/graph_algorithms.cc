@@ -189,6 +189,7 @@ int main(int argc, char const *argv[]) {
     g.add_edge({ "tie", "jacket" });
     g.add_edge({ "belt", "jacket" });
     g.add_vertex("watch");
+    g.add_edge({ "shoes", "socks" });
 
     std::cout << "All vertices: ";
     for (const auto& v : g.vertices()) {
@@ -197,7 +198,7 @@ int main(int argc, char const *argv[]) {
     std::cout << std::endl;
 
     std::cout << "Connected components: ";
-    for (const auto& cc : connected_components<AdjacencyListDiGraph<std::string>,std::string>(g)) {
+    for (const auto& cc : undirected_connected_components<AdjacencyListDiGraph<std::string>,std::string>(g)) {
       std::cout << "[ ";
       for (const auto& elem : cc) {
         std::cout << elem << ", ";
@@ -205,6 +206,14 @@ int main(int argc, char const *argv[]) {
       std::cout << "] ";
     }
     std::cout << std::endl;
+
+    std::cout << "Has cycle: " << std::boolalpha
+              << has_cycle<AdjacencyListDiGraph<std::string>,std::string>(g) << std::endl;
+
+    g.remove_edge({ "shoes", "socks" });
+
+    std::cout << "Has cycle: " << std::boolalpha
+              << has_cycle<AdjacencyListDiGraph<std::string>,std::string>(g) << std::endl;
   }
 
   th.summary();
