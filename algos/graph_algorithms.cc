@@ -178,6 +178,35 @@ int main(int argc, char const *argv[]) {
     std::cout << std::endl;
   }
 
+  {
+    AdjacencyListDiGraph<std::string> g;
+    g.add_edge({ "undershorts", "shoes" });
+    g.add_edge({ "undershorts", "pants" });
+    g.add_edge({ "socks", "shoes" });
+    g.add_edge({ "pants", "belt" });
+    g.add_edge({ "shirt", "belt" });
+    g.add_edge({ "shirt", "tie" });
+    g.add_edge({ "tie", "jacket" });
+    g.add_edge({ "belt", "jacket" });
+    g.add_vertex("watch");
+
+    std::cout << "All vertices: ";
+    for (const auto& v : g.vertices()) {
+      std::cout << v << " ";
+    }
+    std::cout << std::endl;
+
+    std::cout << "Connected components: ";
+    for (const auto& cc : connected_components<AdjacencyListDiGraph<std::string>,std::string>(g)) {
+      std::cout << "[ ";
+      for (const auto& elem : cc) {
+        std::cout << elem << ", ";
+      }
+      std::cout << "] ";
+    }
+    std::cout << std::endl;
+  }
+
   th.summary();
   return 0;
 }

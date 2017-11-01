@@ -22,7 +22,7 @@ public:
   virtual std::size_t vertex_count() const = 0;
   virtual void add_edge(edge_type e) = 0;
   virtual void remove_edge(edge_type e) = 0;
-  // virtual std::size_t edge_count() const = 0;
+  virtual std::size_t edge_count() const = 0;
   virtual bool empty() const = 0;
 
 //   virtual std::size_t degree(vertex_type n) const = 0;
@@ -83,6 +83,18 @@ public:
   std::size_t vertex_count() const {
     return _vertices.size();
   }
+  std::unordered_set<vertex_type> vertices() const {
+    std::unordered_set<vertex_type> ret;
+    // TODO: it's better to do it with iterators as well
+    for (auto edge_it = edges(); !edge_it.end(); ++edge_it) {
+      ret.insert((*edge_it).first);
+      ret.insert((*edge_it).second);
+    }
+    for (auto it = _vertices.begin(); it != _vertices.end(); ++it) {
+      ret.insert(it->first);
+    }
+    return ret;
+  }
 
   void add_edge(edge_type e) {
     _vertices[e.first].insert(e.second);
@@ -90,15 +102,12 @@ public:
   void remove_edge(edge_type e) {
     _vertices[e.first].erase(e.second);
   }
-  // std::size_t edge_count() const {
-  //   // TODO: improve speed by saving edge count
-  //   return std::accumulate(
-  //     _vertices.begin(), _vertices.end(), 0,
-  //     [](std::size_t c, const list_type::value_type& a) {
-  //       return c + a.second.size();
-  //     }
-  //   );
-  // }
+  std::size_t edge_count() const {
+    // TODO: improve speed by saving edge count
+    std::size_t count = 0;
+    for (auto edge_it = edges(); !edge_it.end(); ++edge_it, ++count);
+    return count;
+  }
 
   bool empty() const {
     return _vertices.empty();
@@ -177,6 +186,14 @@ public:
   std::size_t vertex_count() const {
     return _nvertices;
   }
+  std::unordered_set<vertex_type> vertices() const {
+    std::unordered_set<vertex_type> ret;
+    // TODO: it's better to do it with iterators as well
+    for (auto i = 0; i < _nvertices; ++i) {
+      ret.insert(i);
+    }
+    return ret;
+  }
 
   void add_edge(edge_type e) {
     assert(e.first < _nvertices);
@@ -188,10 +205,12 @@ public:
     assert(e.second < _nvertices);
     _vertices[_idx(e.first, e.second)] = false;
   }
-  // std::size_t edge_count() const {
-  //   // TODO: improve speed by saving edge count
-  //   return std::count(_vertices.begin(), _vertices.end(), true);
-  // }
+  std::size_t edge_count() const {
+    // TODO: improve speed by saving edge count
+    std::size_t count = 0;
+    for (auto edge_it = edges(); !edge_it.end(); ++edge_it, ++count);
+    return count;
+  }
 
   bool empty() const {
     return _nvertices == 0;
@@ -294,6 +313,12 @@ public:
   }
   void set_edge_weight(edge_type e, weight_type w) {
     _vertices[e.first][e.second] = w;
+  }
+  std::size_t edge_count() const {
+    // TODO: improve speed by saving edge count
+    std::size_t count = 0;
+    for (auto edge_it = edges(); !edge_it.end(); ++edge_it, ++count);
+    return count;
   }
 
   bool empty() const {

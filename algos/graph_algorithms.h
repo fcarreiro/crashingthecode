@@ -9,6 +9,7 @@
 #include <unordered_map>
 #include <queue>
 #include <vector>
+#include <list>
 
 // based on http://www.boost.org/doc/libs/1_65_1/libs/graph/doc/BFSVisitor.html
 template<class G>
@@ -269,6 +270,37 @@ std::unordered_map<vertex_type, std::size_t> bellman_ford(const WG& g, vertex_ty
   }
 
   return distance;
+}
+
+// TODO: this algorithm only works with undirected graphs
+template<class G, typename vertex_type>
+std::list<std::unordered_set<vertex_type>> undirected_connected_components(const G& g) {
+  std::list<std::unordered_set<vertex_type>> ret;
+  std::unordered_set<vertex_type> remaining{g.vertices()};
+  std::unordered_set<vertex_type> current;
+
+  struct CCDFSVisitor : public DFSVisitor<G> {
+    CCDFSVisitor(std::unordered_set<vertex_type>& rem, std::unordered_set<vertex_type>& cur) :
+    _rem(rem), _cur(cur) {
+    }
+    void start_vertex(vertex_type v, const G& g) {
+      _rem.erase(v);
+      _cur.insert(v);
+    }
+    std::unordered_set<vertex_type>& _rem;
+    std::unordered_set<vertex_type>& _cur;
+  };
+
+  CCDFSVisitor visitor(remaining, current);
+
+  while (!remaining.empty()) {
+    auto s = *remaining.begin();
+    dfs(g, s, visitor);
+    ret.push_back(current);
+    current.clear();
+  }
+
+  return ret;
 }
 
 #endif
