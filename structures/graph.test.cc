@@ -1,6 +1,7 @@
 #include <iostream>
 #include <cstdlib>
 #include <ctime>
+#include <string>
 #include "graph.h"
 #include "../test_helpers.h"
 
@@ -18,6 +19,28 @@ int main(int argc, char const *argv[]) {
     g.add_edge({ 6, 1 });
 
     for (auto it = g.adjacent(2); !it.end(); ++it) {
+      std::cout << (*it).second << " ";
+    }
+    std::cout << std::endl;
+
+    std::cout << "All edges: ";
+    for (auto it = g.edges(); !it.end(); ++it) {
+      std::cout << "(" << (*it).first << "," << (*it).second << ") ";
+    }
+    std::cout << std::endl;
+  }
+
+  {
+    AdjacencyListDiGraph<std::string> g;
+    g.add_edge({ "a", "b" });
+    g.add_edge({ "b", "c" });
+    g.add_edge({ "b", "8" });
+    g.add_edge({ "b", "9" });
+    g.add_edge({ "8", "5" });
+    g.add_edge({ "5", "6" });
+    g.add_edge({ "6", "1" });
+
+    for (auto it = g.adjacent("b"); !it.end(); ++it) {
       std::cout << (*it).second << " ";
     }
     std::cout << std::endl;
@@ -49,6 +72,28 @@ int main(int argc, char const *argv[]) {
       std::cout << "(" << (*it).first.first << ","
                 << (*it).first.second << "):"
                 << (*it).second << " ";
+    }
+    std::cout << std::endl;
+  }
+
+  {
+    AdjacencyMatrixDiGraph g(10);
+    g.add_edge({ 1, 2 });
+    g.add_edge({ 2, 3 });
+    g.add_edge({ 2, 8 });
+    g.add_edge({ 2, 9 });
+    g.add_edge({ 8, 5 });
+    g.add_edge({ 5, 6 });
+    g.add_edge({ 6, 1 });
+
+    for (auto it = g.adjacent(2); !it.end(); ++it) {
+      std::cout << (*it).second << " ";
+    }
+    std::cout << std::endl;
+
+    std::cout << "All edges: ";
+    for (auto it = g.edges(); !it.end(); ++it) {
+      std::cout << "(" << (*it).first << "," << (*it).second << ") ";
     }
     std::cout << std::endl;
   }

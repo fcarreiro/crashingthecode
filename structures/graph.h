@@ -10,9 +10,10 @@
 #include <unordered_map>
 
 // TODO: Improve iterators meta-compatibility
+template<typename _VT = int>
 class DiGraph {
 public:
-  typedef int vertex_type;
+  typedef _VT vertex_type;
   typedef std::pair<vertex_type, vertex_type> edge_type;
 
 public:
@@ -56,8 +57,12 @@ public:
 };
 
 // Adjacency List Directed Graph
-class AdjacencyListDiGraph : public DiGraph {
+template<typename _VT>
+class AdjacencyListDiGraph : public DiGraph<_VT> {
 public:
+  typedef typename DiGraph<_VT>::vertex_type vertex_type;
+  typedef std::pair<vertex_type, vertex_type> edge_type;
+
   ~AdjacencyListDiGraph() {
     clear();
   }
@@ -108,8 +113,8 @@ public:
   class ALDEdgeIterator {
   public:
     ALDEdgeIterator(
-      list_type::const_iterator lcurrent,
-      list_type::const_iterator lend
+      typename list_type::const_iterator lcurrent,
+      typename list_type::const_iterator lend
     ) : _lcurrent(lcurrent), _lend(lend) {
       if (!end()) {
         _acurrent = lcurrent->second.begin();
@@ -131,9 +136,9 @@ public:
       return _lcurrent == _lend;
     }
   private:
-    list_type::const_iterator _lcurrent;
-    adjacency_type::const_iterator _acurrent;
-    list_type::const_iterator _lend;
+    typename list_type::const_iterator _lcurrent;
+    typename adjacency_type::const_iterator _acurrent;
+    typename list_type::const_iterator _lend;
 
     void skip_empty() {
       // skip empty adjacency lists
@@ -163,7 +168,7 @@ public:
 };
 
 // Adjacency Matrix Directed Graph
-class AdjacencyMatrixDiGraph : public DiGraph {
+class AdjacencyMatrixDiGraph : public DiGraph<int> {
 public:
   AdjacencyMatrixDiGraph(const std::size_t nvertices = 0) :
   _nvertices(nvertices), _vertices(nvertices * nvertices) {
@@ -251,9 +256,11 @@ public:
 };
 
 // Weighted Adjacency List Directed Graph
-template<typename _WT = int>
-class WeightedAdjacencyListDiGraph : public DiGraph {
+template<typename _VT = int, typename _WT = int>
+class WeightedAdjacencyListDiGraph : public DiGraph<_VT> {
 public:
+  typedef typename DiGraph<_VT>::vertex_type vertex_type;
+  typedef typename DiGraph<_VT>::edge_type edge_type;
   typedef _WT weight_type;
 
   ~WeightedAdjacencyListDiGraph() {
