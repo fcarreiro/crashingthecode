@@ -53,46 +53,53 @@ struct BFSVisitor {
   virtual void finish_vertex(vertex_type v, const G& g) { }
 };
 
-template<class G, class _Visitor, typename vertex_type>
-void bfs(const G& g, vertex_type v, _Visitor visitor) {
-  std::queue<vertex_type> q;
+template<class G, class _Visitor>
+void bfs(const G& g, typename G::vertex_type v, _Visitor visitor) {
+  typedef typename G::vertex_type vertex_type;
+  enum direction { IN, OUT };
+  std::queue<std::pair<vertex_type, direction>> q;
   enum color { GRAY, BLACK }; // implicit WHITE
   std::unordered_map<vertex_type, color> colors;
 
   visitor.discover_vertex(v, g);
-  q.push(v);
+  q.push({ v, IN });
   colors[v] = GRAY;
 
   while (!q.empty()) {
-    auto top = q.front();
+    auto topv = q.front().first;
+    auto topdir = q.front().second;
     q.pop();
-    visitor.examine_vertex(top, g);
 
-    for (auto edge_it = g.adjacent(top); !edge_it.end(); ++edge_it) {
-      auto edge = *edge_it;
-      auto target = edge.second;
-      visitor.examine_edge(edge, g);
+    if (topdir == IN) {
+      visitor.examine_vertex(topv, g);
+      q.push({ topv, OUT });
 
-      auto color_it = colors.find(target);
-      if (color_it == colors.end()) {
-        // WHITE
-        visitor.tree_edge(edge, g);
-        q.push(target);
-        colors[target] = GRAY;
-        visitor.discover_vertex(target, g);
-      } else if (colors[target] == GRAY) {
-        // GRAY
-        visitor.non_tree_edge(edge, g);
-        visitor.frontier_target(edge, g);
-      } else {
-        // BLACK
-        visitor.non_tree_edge(edge, g);
-        visitor.examined_target(edge, g);
+      for (auto edge_it = g.adjacent(topv); !edge_it.end(); ++edge_it) {
+        auto edge = *edge_it;
+        auto target = edge.second;
+        visitor.examine_edge(edge, g);
+
+        auto color_it = colors.find(target);
+        if (color_it == colors.end()) {
+          // WHITE
+          visitor.tree_edge(edge, g);
+          q.push({ target, IN });
+          colors[target] = GRAY;
+          visitor.discover_vertex(target, g);
+        } else if (colors[target] == GRAY) {
+          // GRAY
+          visitor.non_tree_edge(edge, g);
+          visitor.frontier_target(edge, g);
+        } else {
+          // BLACK
+          visitor.non_tree_edge(edge, g);
+          visitor.examined_target(edge, g);
+        }
       }
+    } else {
+      colors[topv] = BLACK;
+      visitor.finish_vertex(topv, g);
     }
-
-    colors[top] = BLACK;
-    visitor.finish_vertex(top, g);
   }
 }
 
@@ -136,8 +143,9 @@ struct DFSVisitor {
   virtual void finish_vertex(vertex_type v, const G& g) { }
 };
 
-template<class G, class _Visitor, typename vertex_type>
-void dfs(const G& g, vertex_type v, _Visitor visitor) {
+template<class G, class _Visitor>
+void dfs(const G& g, typename G::vertex_type v, _Visitor visitor) {
+  typedef typename G::vertex_type vertex_type;
   enum color { GRAY, BLACK }; // implicit WHITE
   enum paren { START, END };
   std::unordered_map<vertex_type, color> colors;
@@ -186,8 +194,9 @@ void dfs(const G& g, vertex_type v, _Visitor visitor) {
 }
 
 // Dijkstra
-template<class WG, typename vertex_type>
-std::unordered_map<vertex_type, std::size_t> dijkstra(const WG& g, vertex_type s) {
+template<class WG>
+std::unordered_map<typename WG::vertex_type, std::size_t> dijkstra(const WG& g, typename WG::vertex_type s) {
+  typedef typename WG::vertex_type vertex_type;
   typedef std::pair<vertex_type, std::size_t> vertex_dist;
   auto cmp = [](vertex_dist a, vertex_dist b) {
     return a.second > b.second;
@@ -231,8 +240,9 @@ std::unordered_map<vertex_type, std::size_t> dijkstra(const WG& g, vertex_type s
 
 // Bellman-Ford
 // Returns an empty map if there is a negative cycle
-template<class WG, typename vertex_type>
-std::unordered_map<vertex_type, std::size_t> bellman_ford(const WG& g, vertex_type s) {
+template<class WG>
+std::unordered_map<typename WG::vertex_type, std::size_t> bellman_ford(const WG& g, typename WG::vertex_type s) {
+  typedef typename WG::vertex_type vertex_type;
   std::unordered_map<vertex_type, std::size_t> distance;
   distance[s] = 0;
 
@@ -273,8 +283,9 @@ std::unordered_map<vertex_type, std::size_t> bellman_ford(const WG& g, vertex_ty
 }
 
 // TODO: this algorithm only works with undirected graphs
-template<class G, typename vertex_type>
-std::list<std::unordered_set<vertex_type>> undirected_connected_components(const G& g) {
+template<class G>
+std::list<std::unordered_set<typename G::vertex_type>> undirected_connected_components(const G& g) {
+  typedef typename G::vertex_type vertex_type;
   std::list<std::unordered_set<vertex_type>> ret;
   std::unordered_set<vertex_type> remaining{g.vertices()};
   std::unordered_set<vertex_type> current;
@@ -303,8 +314,9 @@ std::list<std::unordered_set<vertex_type>> undirected_connected_components(const
   return ret;
 }
 
-template<class G, typename vertex_type>
+template<class G>
 bool has_cycle(const G& g) {
+  typedef typename G::vertex_type vertex_type;
   bool cycle_present = false;
   std::unordered_set<vertex_type> remaining{g.vertices()};
 
@@ -334,8 +346,9 @@ bool has_cycle(const G& g) {
   return cycle_present;
 }
 
-template<class G, typename vertex_type>
-std::list<vertex_type> topological_sort(const G& g) {
+template<class G>
+std::list<typename G::vertex_type> topological_sort(const G& g) {
+  typedef typename G::vertex_type vertex_type;
   std::list<vertex_type> ret;
   std::unordered_set<vertex_type> remaining{g.vertices()};
 
@@ -346,9 +359,10 @@ std::list<vertex_type> topological_sort(const G& g) {
     _rem(rem), _ret(rret) {
     }
 
-    void start_vertex(vertex_type v, const G& g) {
-      _rem.erase(v);
-      _ret.push_front(v);
+    void finish_vertex(vertex_type v, const G& g) {
+      if (_rem.erase(v)) {
+        _ret.push_front(v);
+      }
     }
 
     std::unordered_set<vertex_type>& _rem;

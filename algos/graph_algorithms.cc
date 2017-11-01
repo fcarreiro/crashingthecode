@@ -198,7 +198,7 @@ int main(int argc, char const *argv[]) {
     std::cout << std::endl;
 
     std::cout << "Connected components: ";
-    for (const auto& cc : undirected_connected_components<AdjacencyListDiGraph<std::string>,std::string>(g)) {
+    for (const auto& cc : undirected_connected_components(g)) {
       std::cout << "[ ";
       for (const auto& elem : cc) {
         std::cout << elem << ", ";
@@ -208,12 +208,17 @@ int main(int argc, char const *argv[]) {
     std::cout << std::endl;
 
     std::cout << "Has cycle: " << std::boolalpha
-              << has_cycle<AdjacencyListDiGraph<std::string>,std::string>(g) << std::endl;
+              << has_cycle(g) << std::endl;
 
     g.remove_edge({ "shoes", "socks" });
 
     std::cout << "Has cycle: " << std::boolalpha
-              << has_cycle<AdjacencyListDiGraph<std::string>,std::string>(g) << std::endl;
+              << has_cycle(g) << std::endl;
+
+    std::cout << "Toposort: ";
+    for (const auto& elem : topological_sort(g)) {
+      std::cout << elem << ", ";
+    }
   }
 
   th.summary();
