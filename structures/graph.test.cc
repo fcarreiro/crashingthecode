@@ -30,7 +30,7 @@ int main(int argc, char const *argv[]) {
   }
 
   {
-    WeightedAdjacencyListDiGraph wg;
+    WeightedAdjacencyListDiGraph<int> wg;
     wg.set_edge_weight({ 1, 2 }, 1);
     wg.set_edge_weight({ 2, 3 }, 2);
     wg.set_edge_weight({ 2, 8 }, 3);
