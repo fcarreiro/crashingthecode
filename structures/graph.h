@@ -251,9 +251,10 @@ public:
 };
 
 // Weighted Adjacency List Directed Graph
+template<typename _WT = int>
 class WeightedAdjacencyListDiGraph : public DiGraph {
 public:
-  typedef std::size_t weight_type;
+  typedef _WT weight_type;
 
   ~WeightedAdjacencyListDiGraph() {
     clear();
@@ -301,8 +302,8 @@ public:
   class WALDEdgeIterator {
   public:
     WALDEdgeIterator(
-      list_type::const_iterator lcurrent,
-      list_type::const_iterator lend
+      typename list_type::const_iterator lcurrent,
+      typename list_type::const_iterator lend
     ) : _lcurrent(lcurrent), _lend(lend) {
       if (!end()) {
         _acurrent = lcurrent->second.begin();
@@ -324,9 +325,9 @@ public:
       return _lcurrent == _lend;
     }
   private:
-    list_type::const_iterator _lcurrent;
-    adjacency_type::const_iterator _acurrent;
-    list_type::const_iterator _lend;
+    typename list_type::const_iterator _lcurrent;
+    typename adjacency_type::const_iterator _acurrent;
+    typename list_type::const_iterator _lend;
 
     void skip_empty() {
       // skip empty adjacency lists
@@ -344,6 +345,13 @@ public:
     auto it = _vertices.find(n);
     return WALDEdgeIterator(
       it, it == _vertices.end() ? it : std::next(it)
+    );
+  }
+
+  WALDEdgeIterator edges() const {
+    return WALDEdgeIterator(
+      _vertices.begin(),
+      _vertices.end()
     );
   }
 };

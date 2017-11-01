@@ -186,7 +186,7 @@ void dfs(const G& g, vertex_type v, _Visitor visitor) {
 
 // Dijkstra
 template<class WG, typename vertex_type>
-std::unordered_map<vertex_type, std::size_t> dijkstra(const WG& g, vertex_type s, vertex_type u) {
+std::unordered_map<vertex_type, std::size_t> dijkstra(const WG& g, vertex_type s) {
   typedef std::pair<vertex_type, std::size_t> vertex_dist;
   auto cmp = [](vertex_dist a, vertex_dist b) {
     return a.second > b.second;
@@ -216,15 +216,55 @@ std::unordered_map<vertex_type, std::size_t> dijkstra(const WG& g, vertex_type s
         auto edge = *edge_it;
         auto target = edge.first.second;
         auto weight = edge.second;
-        if (
-          distance.count(target) == 0 ||
-          dx + weight < distance[target]
-        ) {
+        if (distance.count(target) == 0 || dx + weight < distance[target]) {
           distance[target] = dx + weight;
           q.push({ target, distance[target] }); // (*)
           // std::cout << "distance[" << target << "] = " << distance[target] << std::endl;
         }
       }
+    }
+  }
+
+  return distance;
+}
+
+// Bellman-Ford
+// Returns an empty map if there is a negative cycle
+template<class WG, typename vertex_type>
+std::unordered_map<vertex_type, std::size_t> bellman_ford(const WG& g, vertex_type s) {
+  std::unordered_map<vertex_type, std::size_t> distance;
+  distance[s] = 0;
+
+  // calculate distances
+  for (std::size_t i = 0; i < g.vertex_count() - 1; ++i) {
+    for (auto edge_it = g.edges(); !edge_it.end(); ++edge_it) {
+      auto edge = *edge_it;
+      auto source = edge.first.first;
+      auto target = edge.first.second;
+      auto weight = edge.second;
+
+      // relaaaaaax
+      if (distance.count(source) != 0) {
+        auto ds = distance[source];
+        if (distance.count(target) == 0 || ds + weight < distance[target]) {
+          distance[target] = ds + weight;
+        }
+      }
+    }
+  }
+
+  // check for negative cycles (could be merged with above loop but it's
+  // easier to read this way)
+  for (auto edge_it = g.edges(); !edge_it.end(); ++edge_it) {
+    auto edge = *edge_it;
+    auto source = edge.first.first;
+    auto target = edge.first.second;
+    auto weight = edge.second;
+
+    // relaaaaaax
+    if (distance.count(source) != 0 && distance[source] + weight < distance[target]) {
+      // oops... there's a cycle
+      return {};
     }
   }
 

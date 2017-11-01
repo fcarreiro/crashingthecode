@@ -133,7 +133,7 @@ int main(int argc, char const *argv[]) {
   }
 
   {
-    WeightedAdjacencyListDiGraph wg;
+    WeightedAdjacencyListDiGraph<int> wg;
     wg.set_edge_weight({ 1, 2 }, 1);
     wg.set_edge_weight({ 2, 3 }, 2);
     wg.set_edge_weight({ 2, 8 }, 3);
@@ -149,9 +149,33 @@ int main(int argc, char const *argv[]) {
     }
     std::cout << std::endl;
 
-    auto distances = dijkstra(wg, 2, 1);
+    auto distances = dijkstra(wg, 2);
     std::cout << "Dijkstra(2,1): "
               << (distances.count(1) == 1 ? distances[1] : -1);
+    std::cout << std::endl;
+
+    distances = bellman_ford(wg, 2);
+    std::cout << "Bellman-Ford(2,1): "
+              << (distances.count(1) == 1 ? distances[1] : -1);
+    std::cout << std::endl;
+  }
+
+  {
+    WeightedAdjacencyListDiGraph<int> wg;
+    wg.set_edge_weight({ 1, 2 }, 1);
+    wg.set_edge_weight({ 2, 3 }, -1);
+    wg.set_edge_weight({ 2, 8 }, -11);
+    wg.set_edge_weight({ 2, 9 }, 4);
+    wg.set_edge_weight({ 3, 6 }, 1);
+    wg.set_edge_weight({ 8, 5 }, 5);
+    wg.set_edge_weight({ 5, 6 }, 5);
+    wg.set_edge_weight({ 6, 1 }, 7);
+    wg.set_edge_weight({ 10, 20 }, 1);
+
+    auto distances = bellman_ford(wg, 2);
+    std::cout << "Bellman-Ford(2,1): "
+              << (distances.count(1) == 1 ? distances[1] : -1);
+    std::cout << std::endl;
   }
 
   th.summary();

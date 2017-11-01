@@ -43,6 +43,14 @@ int main(int argc, char const *argv[]) {
       std::cout << (*it).first.second << "(" << (*it).second << ") ";
     }
     std::cout << std::endl;
+
+    std::cout << "All edges: ";
+    for (auto it = wg.edges(); !it.end(); ++it) {
+      std::cout << "(" << (*it).first.first << ","
+                << (*it).first.second << "):"
+                << (*it).second << " ";
+    }
+    std::cout << std::endl;
   }
 
   th.summary();
