@@ -338,93 +338,81 @@ std::unordered_map<typename WG::vertex_type, std::size_t> bellman_ford(const WG&
   return distance;
 }
 
-// TODO: this algorithm only works with undirected graphs
 template<class G>
-std::list<std::unordered_set<typename G::vertex_type>> undirected_connected_components(const G& g) {
+G transpose(const G& g) {
+  G t;
+
+  for (const auto& v : g.vertices()) {
+    t.add_vertex(v);
+  }
+
+  for (auto edge_it = g.edges(); !edge_it.end(); ++edge_it) {
+    t.add_edge({ (*edge_it).second, (*edge_it).first });
+  }
+
+  return t;
+}
+
+template<class G>
+std::list<std::unordered_set<typename G::vertex_type>> directed_connected_components(const G& g) {
   typedef typename G::vertex_type vertex_type;
   std::list<std::unordered_set<vertex_type>> ret;
-  std::unordered_set<vertex_type> remaining{g.vertices()};
-  std::unordered_set<vertex_type> current;
 
-  struct UCCDFSVisitor : public DFSVisitor<G> {
-    UCCDFSVisitor(std::unordered_set<vertex_type>& rem, std::unordered_set<vertex_type>& cur) :
-    _rem(rem), _cur(cur) {
+  // do a first-pass global DFS and calculate
+  std::list<vertex_type> reverse_finish_time;
+
+  {
+    struct FinishTimeDFSVisitor : public DFSVisitor<G> {
+      FinishTimeDFSVisitor(std::list<vertex_type>& rft) : _rft(rft) { }
+
+      void finish_vertex(vertex_type v, const G& g) {
+        _rft.push_front(v);
+      }
+
+      std::list<vertex_type>& _rft;
+    };
+
+    FinishTimeDFSVisitor visitor(reverse_finish_time);
+    global_dfs(g, visitor);
+  }
+
+  {
+    G t = transpose(g);
+    std::unordered_set<vertex_type> done;
+    std::unordered_set<vertex_type> current_cc;
+
+    struct CCDFSVisitor : public DFSVisitor<G> {
+      CCDFSVisitor(std::unordered_set<vertex_type>& d, std::unordered_set<vertex_type>& cur) :
+      _done(d), _cur(cur) {
+      }
+      void start_vertex(vertex_type v, const G& g) {
+        if (_done.find(v) == _done.end()) {
+          _done.insert(v);
+          _cur.insert(v);
+        }
+      }
+      std::unordered_set<vertex_type>& _done;
+      std::unordered_set<vertex_type>& _cur;
+    };
+
+    // we can't use global DFS as it is because we need to pick the
+    // vertices in the order given by "reverse_finish_time"
+    // TODO: this also makes the complexity far worse,
+    // because the dfs() call could visit the whole graph each time
+    // this is only a proof of concept but otherwise that should be fixed
+    CCDFSVisitor visitor(done, current_cc);
+
+    for (const auto& s : reverse_finish_time) {
+      dfs(t, s, visitor);
+      if (!current_cc.empty()) {
+        ret.push_back(current_cc);
+        current_cc.clear();
+      }
     }
-    void start_vertex(vertex_type v, const G& g) {
-      _rem.erase(v);
-      _cur.insert(v);
-    }
-    std::unordered_set<vertex_type>& _rem;
-    std::unordered_set<vertex_type>& _cur;
-  };
-
-  UCCDFSVisitor visitor(remaining, current);
-
-  while (!remaining.empty()) {
-    auto s = *remaining.begin();
-    dfs(g, s, visitor);
-    ret.push_back(current);
-    current.clear();
   }
 
   return ret;
 }
-
-// template<class G>
-// std::list<std::unordered_set<typename G::vertex_type>> directed_connected_components(const G& g) {
-//   typedef typename G::vertex_type vertex_type;
-//   std::list<std::unordered_set<vertex_type>> ret;
-//
-//   // do a first-pass global DFS and calculate
-//   std::stack<vertex_type> reverse_finish_time;
-//
-//   {
-//     struct FinishTimeDFSVisitor : public DFSVisitor<G> {
-//       FinishTimeDFSVisitor(std::stack<vertex_type>& rft, std::unordered_set<vertex_type>& done) :
-//       _rft(rft), _done(done) {
-//       }
-//       void finish_vertex(vertex_type v, const G& g) {
-//         if (_done.count(v) == 0) {
-//           _done.insert(v);
-//           _rft.push_back(v);
-//         }
-//       }
-//       std::stack<vertex_type>& _rft;
-//       std::unordered_set<vertex_type>& _done;
-//     };
-//
-//     std::unordered_set<vertex_type> visited;
-//     FinishTimeDFSVisitor visitor(reverse_finish_time, visited);
-//     for (auto s : g.vertices()) {
-//       dfs(g, s, visitor);
-//     }
-//   }
-//
-//   std::unordered_set<vertex_type> current_cc;
-//
-//   struct CCDFSVisitor : public DFSVisitor<G> {
-//     CCDFSVisitor(std::unordered_set<vertex_type>& rem, std::unordered_set<vertex_type>& cur) :
-//     _rem(rem), _cur(cur) {
-//     }
-//     void start_vertex(vertex_type v, const G& g) {
-//       _rem.erase(v);
-//       _cur.insert(v);
-//     }
-//     std::unordered_set<vertex_type>& _rem;
-//     std::unordered_set<vertex_type>& _cur;
-//   };
-//
-//   CCDFSVisitor visitor(remaining, current);
-//
-//   while (!remaining.empty()) {
-//     auto s = *remaining.begin();
-//     dfs(g, s, visitor);
-//     ret.push_back(current);
-//     current.clear();
-//   }
-//
-//   return ret;
-// }
 
 template<class G>
 bool has_cycle(const G& g) {

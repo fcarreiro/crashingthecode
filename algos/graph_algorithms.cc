@@ -209,16 +209,45 @@ int main(int argc, char const *argv[]) {
     for (const auto& elem : topological_sort(g)) {
       std::cout << elem << ", ";
     }
+    std::cout << std::endl;
 
-    // std::cout << "Strongly connected components: ";
-    // for (const auto& cc : directed_connected_components(g)) {
-    //   std::cout << "[ ";
-    //   for (const auto& elem : cc) {
-    //     std::cout << elem << ", ";
-    //   }
-    //   std::cout << "] ";
-    // }
-    // std::cout << std::endl;
+    std::cout << "Strongly connected components: ";
+    for (const auto& cc : directed_connected_components(g)) {
+      std::cout << "[ ";
+      for (const auto& elem : cc) {
+        std::cout << elem << ", ";
+      }
+      std::cout << "] ";
+    }
+    std::cout << std::endl;
+  }
+
+  {
+    AdjacencyListDiGraph<int> g;
+    g.add_edge({ 1, 2 });
+    g.add_edge({ 2, 3 });
+    g.add_edge({ 2, 8 });
+    g.add_edge({ 2, 9 });
+    g.add_edge({ 8, 5 });
+    g.add_edge({ 5, 6 });
+    g.add_edge({ 6, 1 });
+    g.add_edge({ 10, 20 });
+    g.add_edge({ 20, 10 });
+    g.add_vertex(50);
+    g.add_edge({ 44, 45 });
+    g.add_edge({ 45, 46 });
+    g.add_edge({ 46, 44 });
+    g.add_edge({ 44, 1 });
+
+    std::cout << "Strongly connected components: ";
+    for (const auto& cc : directed_connected_components(g)) {
+      std::cout << "[ ";
+      for (const auto& elem : cc) {
+        std::cout << elem << ", ";
+      }
+      std::cout << "] ";
+    }
+    std::cout << std::endl;
   }
 
   th.summary();
