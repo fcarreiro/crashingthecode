@@ -193,6 +193,62 @@ void dfs(const G& g, typename G::vertex_type v, _Visitor visitor) {
   }
 }
 
+template<class G, class _Visitor>
+void global_dfs(const G& g, _Visitor visitor) {
+  typedef typename G::vertex_type vertex_type;
+  enum color { GRAY, BLACK }; // implicit WHITE
+  enum paren { START, END };
+  std::unordered_map<vertex_type, color> colors;
+  std::stack<std::pair<vertex_type, paren>> s;
+
+  for (const auto& v : g.vertices()) {
+    if (colors.find(v) != colors.end()) {
+      continue;
+    }
+
+    visitor.discover_vertex(v, g);
+    s.push({ v, START });
+    colors[v] = GRAY;
+
+    while(!s.empty()) {
+      auto top_pair = s.top();
+      s.pop();
+
+      auto top = top_pair.first;
+      auto state = top_pair.second;
+
+      if (state == START) {
+        visitor.start_vertex(top, g);
+        s.push({ top, END });
+
+        for (auto edge_it = g.adjacent(top); !edge_it.end(); ++edge_it) {
+          auto edge = *edge_it;
+          auto target = edge.second;
+          visitor.examine_edge(edge, g);
+
+          auto color_it = colors.find(target);
+          if (color_it == colors.end()) {
+            // WHITE
+            visitor.tree_edge(edge, g);
+            visitor.discover_vertex(target, g);
+            s.push({ target, START });
+            colors[target] = GRAY;
+          } else if (colors[target] == GRAY) {
+            // GRAY
+            visitor.back_edge(edge, g);
+          } else {
+            // BLACK
+            visitor.forward_or_cross_edge(edge, g);
+          }
+        }
+      } else {
+        colors[top] = BLACK;
+        visitor.finish_vertex(top, g);
+      }
+    }
+  }
+}
+
 // Dijkstra
 template<class WG>
 std::unordered_map<typename WG::vertex_type, std::size_t> dijkstra(const WG& g, typename WG::vertex_type s) {
@@ -290,8 +346,8 @@ std::list<std::unordered_set<typename G::vertex_type>> undirected_connected_comp
   std::unordered_set<vertex_type> remaining{g.vertices()};
   std::unordered_set<vertex_type> current;
 
-  struct CCDFSVisitor : public DFSVisitor<G> {
-    CCDFSVisitor(std::unordered_set<vertex_type>& rem, std::unordered_set<vertex_type>& cur) :
+  struct UCCDFSVisitor : public DFSVisitor<G> {
+    UCCDFSVisitor(std::unordered_set<vertex_type>& rem, std::unordered_set<vertex_type>& cur) :
     _rem(rem), _cur(cur) {
     }
     void start_vertex(vertex_type v, const G& g) {
@@ -302,7 +358,7 @@ std::list<std::unordered_set<typename G::vertex_type>> undirected_connected_comp
     std::unordered_set<vertex_type>& _cur;
   };
 
-  CCDFSVisitor visitor(remaining, current);
+  UCCDFSVisitor visitor(remaining, current);
 
   while (!remaining.empty()) {
     auto s = *remaining.begin();
@@ -314,68 +370,98 @@ std::list<std::unordered_set<typename G::vertex_type>> undirected_connected_comp
   return ret;
 }
 
+// template<class G>
+// std::list<std::unordered_set<typename G::vertex_type>> directed_connected_components(const G& g) {
+//   typedef typename G::vertex_type vertex_type;
+//   std::list<std::unordered_set<vertex_type>> ret;
+//
+//   // do a first-pass global DFS and calculate
+//   std::stack<vertex_type> reverse_finish_time;
+//
+//   {
+//     struct FinishTimeDFSVisitor : public DFSVisitor<G> {
+//       FinishTimeDFSVisitor(std::stack<vertex_type>& rft, std::unordered_set<vertex_type>& done) :
+//       _rft(rft), _done(done) {
+//       }
+//       void finish_vertex(vertex_type v, const G& g) {
+//         if (_done.count(v) == 0) {
+//           _done.insert(v);
+//           _rft.push_back(v);
+//         }
+//       }
+//       std::stack<vertex_type>& _rft;
+//       std::unordered_set<vertex_type>& _done;
+//     };
+//
+//     std::unordered_set<vertex_type> visited;
+//     FinishTimeDFSVisitor visitor(reverse_finish_time, visited);
+//     for (auto s : g.vertices()) {
+//       dfs(g, s, visitor);
+//     }
+//   }
+//
+//   std::unordered_set<vertex_type> current_cc;
+//
+//   struct CCDFSVisitor : public DFSVisitor<G> {
+//     CCDFSVisitor(std::unordered_set<vertex_type>& rem, std::unordered_set<vertex_type>& cur) :
+//     _rem(rem), _cur(cur) {
+//     }
+//     void start_vertex(vertex_type v, const G& g) {
+//       _rem.erase(v);
+//       _cur.insert(v);
+//     }
+//     std::unordered_set<vertex_type>& _rem;
+//     std::unordered_set<vertex_type>& _cur;
+//   };
+//
+//   CCDFSVisitor visitor(remaining, current);
+//
+//   while (!remaining.empty()) {
+//     auto s = *remaining.begin();
+//     dfs(g, s, visitor);
+//     ret.push_back(current);
+//     current.clear();
+//   }
+//
+//   return ret;
+// }
+
 template<class G>
 bool has_cycle(const G& g) {
-  typedef typename G::vertex_type vertex_type;
-  bool cycle_present = false;
-  std::unordered_set<vertex_type> remaining{g.vertices()};
-
   struct CycleDFSVisitor : public DFSVisitor<G> {
-    CycleDFSVisitor(std::unordered_set<vertex_type>& rem, bool& cp) : _cp(cp), _rem(rem) {
-    }
-
-    void start_vertex(vertex_type v, const G& g) {
-      _rem.erase(v);
-    }
+    CycleDFSVisitor(bool& cp) : _cp(cp) { }
 
     void back_edge(typename DFSVisitor<G>::edge_type e, const G& g) {
       _cp = true;
     }
 
     bool& _cp;
-    std::unordered_set<vertex_type>& _rem;
   };
 
-  CycleDFSVisitor visitor(remaining, cycle_present);
-
-  while (!remaining.empty() && !cycle_present) {
-    auto s = *remaining.begin();
-    dfs(g, s, visitor);
-  }
-
+  bool cycle_present = false;
+  CycleDFSVisitor visitor(cycle_present);
+  global_dfs(g, visitor);
   return cycle_present;
 }
 
 template<class G>
 std::list<typename G::vertex_type> topological_sort(const G& g) {
   typedef typename G::vertex_type vertex_type;
-  std::list<vertex_type> ret;
-  std::unordered_set<vertex_type> remaining{g.vertices()};
-
   assert(!has_cycle(g));
 
   struct TopoDFSVisitor : public DFSVisitor<G> {
-    TopoDFSVisitor(std::unordered_set<vertex_type>& rem, std::list<vertex_type>& rret) :
-    _rem(rem), _ret(rret) {
-    }
+    TopoDFSVisitor(std::list<vertex_type>& rret) : _ret(rret) { }
 
     void finish_vertex(vertex_type v, const G& g) {
-      if (_rem.erase(v)) {
-        _ret.push_front(v);
-      }
+      _ret.push_front(v);
     }
 
-    std::unordered_set<vertex_type>& _rem;
     std::list<vertex_type>& _ret;
   };
 
-  TopoDFSVisitor visitor(remaining, ret);
-
-  while (!remaining.empty()) {
-    auto s = *remaining.begin();
-    dfs(g, s, visitor);
-  }
-
+  std::list<vertex_type> ret;
+  TopoDFSVisitor visitor(ret);
+  global_dfs(g, visitor);
   return ret;
 }
 

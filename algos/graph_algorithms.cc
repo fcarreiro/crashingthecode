@@ -197,16 +197,6 @@ int main(int argc, char const *argv[]) {
     }
     std::cout << std::endl;
 
-    std::cout << "Connected components: ";
-    for (const auto& cc : undirected_connected_components(g)) {
-      std::cout << "[ ";
-      for (const auto& elem : cc) {
-        std::cout << elem << ", ";
-      }
-      std::cout << "] ";
-    }
-    std::cout << std::endl;
-
     std::cout << "Has cycle: " << std::boolalpha
               << has_cycle(g) << std::endl;
 
@@ -219,6 +209,16 @@ int main(int argc, char const *argv[]) {
     for (const auto& elem : topological_sort(g)) {
       std::cout << elem << ", ";
     }
+
+    // std::cout << "Strongly connected components: ";
+    // for (const auto& cc : directed_connected_components(g)) {
+    //   std::cout << "[ ";
+    //   for (const auto& elem : cc) {
+    //     std::cout << elem << ", ";
+    //   }
+    //   std::cout << "] ";
+    // }
+    // std::cout << std::endl;
   }
 
   th.summary();
