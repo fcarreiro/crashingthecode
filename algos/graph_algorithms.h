@@ -269,10 +269,10 @@ std::unordered_map<typename WG::vertex_type, std::size_t> dijkstra(const WG& g, 
     q.pop();
     auto x = vd.first;
     auto dx = vd.second;
-    assert(dx == distance[x]);
 
     // there could be duplicates because we don't have decrease_key; see (*)
     if (done.count(x) == 0) {
+      assert(dx == distance[x]);
       // std::cout << "current: " << x << std::endl;
       // mark x as finished
       done.insert(x);

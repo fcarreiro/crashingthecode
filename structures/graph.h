@@ -11,13 +11,13 @@
 
 // TODO: Improve iterators meta-compatibility
 template<typename _VT = int>
-class DiGraph {
+class Graph {
 public:
   typedef _VT vertex_type;
   typedef std::pair<vertex_type, vertex_type> edge_type;
 
 public:
-  virtual ~DiGraph() = default;
+  virtual ~Graph() = default;
 
   virtual std::size_t vertex_count() const = 0;
   virtual void add_edge(edge_type e) = 0;
@@ -58,29 +58,29 @@ public:
 
 // Adjacency List Directed Graph
 template<typename _VT>
-class AdjacencyListDiGraph : public DiGraph<_VT> {
+class AdjacencyListDiGraph : public Graph<_VT> {
 public:
-  typedef typename DiGraph<_VT>::vertex_type vertex_type;
+  typedef typename Graph<_VT>::vertex_type vertex_type;
   typedef std::pair<vertex_type, vertex_type> edge_type;
 
-  ~AdjacencyListDiGraph() {
+  virtual ~AdjacencyListDiGraph() {
     clear();
   }
 
-  void clear() {
+  virtual void clear() {
     _vertices.clear();
   }
 
-  void add_vertex(vertex_type v) {
+  virtual void add_vertex(vertex_type v) {
     _vertices[v];
   }
-  void remove_vertex(vertex_type v) {
+  virtual void remove_vertex(vertex_type v) {
     _vertices.erase(v);
     for (auto it = _vertices.begin(); it != _vertices.end(); ++it) {
       it->second.erase(v);
     }
   }
-  std::size_t vertex_count() const {
+  virtual std::size_t vertex_count() const {
     return _vertices.size();
   }
   std::unordered_set<vertex_type> vertices() const {
@@ -96,20 +96,20 @@ public:
     return ret;
   }
 
-  void add_edge(edge_type e) {
+  virtual void add_edge(edge_type e) {
     _vertices[e.first].insert(e.second);
   }
-  void remove_edge(edge_type e) {
+  virtual void remove_edge(edge_type e) {
     _vertices[e.first].erase(e.second);
   }
-  std::size_t edge_count() const {
+  virtual std::size_t edge_count() const {
     // TODO: improve speed by saving edge count
     std::size_t count = 0;
     for (auto edge_it = edges(); !edge_it.end(); ++edge_it, ++count);
     return count;
   }
 
-  bool empty() const {
+  virtual bool empty() const {
     return _vertices.empty();
   }
 
@@ -161,14 +161,14 @@ public:
   };
 
 public:
-  ALDEdgeIterator edges() const {
+  virtual ALDEdgeIterator edges() const {
     return ALDEdgeIterator(
       _vertices.begin(),
       _vertices.end()
     );
   }
 
-  ALDEdgeIterator adjacent(vertex_type n) const {
+  virtual ALDEdgeIterator adjacent(vertex_type n) const {
     auto it = _vertices.find(n);
     return ALDEdgeIterator(
       it, it == _vertices.end() ? it : std::next(it)
@@ -177,7 +177,7 @@ public:
 };
 
 // Adjacency Matrix Directed Graph
-class AdjacencyMatrixDiGraph : public DiGraph<int> {
+class AdjacencyMatrixDiGraph : public Graph<int> {
 public:
   AdjacencyMatrixDiGraph(const std::size_t nvertices = 0) :
   _nvertices(nvertices), _vertices(nvertices * nvertices) {
@@ -276,52 +276,52 @@ public:
 
 // Weighted Adjacency List Directed Graph
 template<typename _VT = int, typename _WT = int>
-class WeightedAdjacencyListDiGraph : public DiGraph<_VT> {
+class WeightedAdjacencyListDiGraph : public Graph<_VT> {
 public:
-  typedef typename DiGraph<_VT>::vertex_type vertex_type;
-  typedef typename DiGraph<_VT>::edge_type edge_type;
+  typedef typename Graph<_VT>::vertex_type vertex_type;
+  typedef typename Graph<_VT>::edge_type edge_type;
   typedef _WT weight_type;
 
-  ~WeightedAdjacencyListDiGraph() {
+  virtual ~WeightedAdjacencyListDiGraph() {
     clear();
   }
 
-  void clear() {
+  virtual void clear() {
     _vertices.clear();
   }
 
-  void add_vertex(vertex_type v) {
+  virtual void add_vertex(vertex_type v) {
     _vertices[v];
   }
-  void remove_vertex(vertex_type v) {
+  virtual void remove_vertex(vertex_type v) {
     _vertices.erase(v);
     for (auto it = _vertices.begin(); it != _vertices.end(); ++it) {
       it->second.erase(v);
     }
   }
-  std::size_t vertex_count() const {
+  virtual std::size_t vertex_count() const {
     return _vertices.size();
   }
 
-  void add_edge(edge_type e) {
+  virtual void add_edge(edge_type e) {
     if (_vertices[e.first][e.second] == 0) {
       _vertices[e.first][e.second] = 1;
     }
   }
-  void remove_edge(edge_type e) {
+  virtual void remove_edge(edge_type e) {
     _vertices[e.first].erase(e.second);
   }
-  void set_edge_weight(edge_type e, weight_type w) {
+  virtual void set_edge_weight(edge_type e, weight_type w) {
     _vertices[e.first][e.second] = w;
   }
-  std::size_t edge_count() const {
+  virtual std::size_t edge_count() const {
     // TODO: improve speed by saving edge count
     std::size_t count = 0;
     for (auto edge_it = edges(); !edge_it.end(); ++edge_it, ++count);
     return count;
   }
 
-  bool empty() const {
+  virtual bool empty() const {
     return _vertices.empty();
   }
 
@@ -373,18 +373,57 @@ public:
   };
 
 public:
-  WALDEdgeIterator adjacent(vertex_type n) const {
+  virtual WALDEdgeIterator adjacent(vertex_type n) const {
     auto it = _vertices.find(n);
     return WALDEdgeIterator(
       it, it == _vertices.end() ? it : std::next(it)
     );
   }
 
-  WALDEdgeIterator edges() const {
+  virtual WALDEdgeIterator edges() const {
     return WALDEdgeIterator(
       _vertices.begin(),
       _vertices.end()
     );
+  }
+};
+
+// Adjacency List Undirected Graph
+template<typename _VT>
+class AdjacencyListGraph : public AdjacencyListDiGraph<_VT> {
+public:
+  typedef typename AdjacencyListDiGraph<_VT>::vertex_type vertex_type;
+  typedef std::pair<vertex_type, vertex_type> edge_type;
+
+  virtual void add_edge(edge_type e) {
+    AdjacencyListDiGraph<_VT>::add_edge(e);
+    AdjacencyListDiGraph<_VT>::add_edge({ e.second, e.first });
+  }
+  virtual void remove_edge(edge_type e) {
+    AdjacencyListDiGraph<_VT>::remove_edge(e);
+    AdjacencyListDiGraph<_VT>::remove_edge({ e.second, e.first });
+  }
+};
+
+// Weighted Adjacency List Undirected Graph
+template<typename _VT = int, typename _WT = int>
+class WeightedAdjacencyListGraph : public WeightedAdjacencyListDiGraph<_VT, _WT> {
+public:
+  typedef typename WeightedAdjacencyListDiGraph<_VT, _WT>::vertex_type vertex_type;
+  typedef typename WeightedAdjacencyListDiGraph<_VT, _WT>::edge_type edge_type;
+  typedef typename WeightedAdjacencyListDiGraph<_VT, _WT>::weight_type weight_type;
+
+  virtual void add_edge(edge_type e) {
+    WeightedAdjacencyListDiGraph<_VT, _WT>::add_edge(e);
+    WeightedAdjacencyListDiGraph<_VT, _WT>::add_edge({ e.second, e.first });
+  }
+  virtual void remove_edge(edge_type e) {
+    WeightedAdjacencyListDiGraph<_VT, _WT>::remove_edge(e);
+    WeightedAdjacencyListDiGraph<_VT, _WT>::remove_edge({ e.second, e.first });
+  }
+  virtual void set_edge_weight(edge_type e, weight_type w) {
+    WeightedAdjacencyListDiGraph<_VT, _WT>::set_edge_weight(e, w);
+    WeightedAdjacencyListDiGraph<_VT, _WT>::set_edge_weight({ e.second, e.first }, w);
   }
 };
 

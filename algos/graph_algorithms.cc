@@ -250,6 +250,29 @@ int main(int argc, char const *argv[]) {
     std::cout << std::endl;
   }
 
+  {
+    WeightedAdjacencyListGraph<int> wg;
+    wg.set_edge_weight({ 1, 2 }, 7);
+    wg.set_edge_weight({ 1, 3 }, 9);
+    wg.set_edge_weight({ 2, 3 }, 10);
+    wg.set_edge_weight({ 1, 6 }, 14);
+    wg.set_edge_weight({ 6, 5 }, 9);
+    wg.set_edge_weight({ 5, 4 }, 6);
+    wg.set_edge_weight({ 4, 2 }, 15);
+    wg.set_edge_weight({ 6, 3 }, 2);
+    wg.set_edge_weight({ 3, 4 }, 11);
+
+    auto distances = dijkstra(wg, 1);
+    std::cout << "(undirected) Dijkstra(1,5): "
+              << (distances.count(5) == 1 ? distances[5] : -1);
+    std::cout << std::endl;
+
+    distances = bellman_ford(wg, 1);
+    std::cout << "(undirected) Bellman-Ford(1,5): "
+              << (distances.count(5) == 1 ? distances[5] : -1);
+    std::cout << std::endl;
+  }
+
   th.summary();
   return 0;
 }
