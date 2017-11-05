@@ -11,6 +11,21 @@
 #include <vector>
 #include <list>
 
+template<class G>
+G transpose(const G& g) {
+  G t;
+
+  for (const auto& v : g.vertices()) {
+    t.add_vertex(v);
+  }
+
+  for (auto edge_it = g.edges(); !edge_it.end(); ++edge_it) {
+    t.add_edge({ (*edge_it).second, (*edge_it).first });
+  }
+
+  return t;
+}
+
 // based on http://www.boost.org/doc/libs/1_65_1/libs/graph/doc/BFSVisitor.html
 template<class G>
 struct BFSVisitor {
@@ -339,21 +354,6 @@ std::unordered_map<typename WG::vertex_type, std::size_t> bellman_ford(const WG&
 }
 
 template<class G>
-G transpose(const G& g) {
-  G t;
-
-  for (const auto& v : g.vertices()) {
-    t.add_vertex(v);
-  }
-
-  for (auto edge_it = g.edges(); !edge_it.end(); ++edge_it) {
-    t.add_edge({ (*edge_it).second, (*edge_it).first });
-  }
-
-  return t;
-}
-
-template<class G>
 std::list<std::unordered_set<typename G::vertex_type>> directed_connected_components(const G& g) {
   typedef typename G::vertex_type vertex_type;
   std::list<std::unordered_set<vertex_type>> ret;
@@ -451,6 +451,57 @@ std::list<typename G::vertex_type> topological_sort(const G& g) {
   TopoDFSVisitor visitor(ret);
   global_dfs(g, visitor);
   return ret;
+}
+
+// Prim's minimum spanning tree
+template<class WG>
+std::unordered_map<typename WG::vertex_type, typename WG::vertex_type> prim_mst(const WG& g) {
+  typedef typename WG::vertex_type vertex_type;
+  typedef typename WG::weight_type weight_type;
+  typedef std::pair<vertex_type, weight_type> vertex_dist;
+  auto cmp = [](vertex_dist a, vertex_dist b) {
+    return a.second > b.second;
+  };
+  std::priority_queue<vertex_dist, std::vector<vertex_dist>, decltype(cmp)> q(cmp);
+  std::unordered_map<vertex_type, vertex_type> parent;
+  std::unordered_map<vertex_type, weight_type> key;
+  std::unordered_set<vertex_type> done;
+
+  if (g.empty()) {
+    return parent;
+  }
+
+  auto random_root = *g.vertices().begin();
+  q.push({ random_root, 0 });
+  // parent[random_root] = random_root;
+  key[random_root] = 0;
+
+  while (!q.empty()) {
+    vertex_dist vd = q.top();
+    q.pop();
+    auto x = vd.first;
+
+    // there could be duplicates because we don't have decrease_key; see (*)
+    if (done.count(x) == 0) {
+      done.insert(x);
+
+      // add adjacent vertices to queue
+      for (auto edge_it = g.adjacent(x); !edge_it.end(); ++edge_it) {
+        auto edge = *edge_it;
+        auto target = edge.first.second;
+        auto weight = edge.second;
+
+        // we don't modify key or parent of vertices that have already been chosen
+        if (done.count(target) == 0 && (key.count(target) == 0 || weight < key[target])) {
+          key[target] = weight;
+          parent[target] = x;
+          q.push({ target, weight }); // (*)
+        }
+      }
+    }
+  }
+
+  return parent;
 }
 
 #endif

@@ -273,6 +273,31 @@ int main(int argc, char const *argv[]) {
     std::cout << std::endl;
   }
 
+  {
+    WeightedAdjacencyListGraph<std::string> wg;
+    wg.set_edge_weight({ "a", "b" }, 4);
+    wg.set_edge_weight({ "a", "h" }, 8);
+    wg.set_edge_weight({ "b", "h" }, 11);
+    wg.set_edge_weight({ "h", "i" }, 7);
+    wg.set_edge_weight({ "b", "c" }, 8);
+    wg.set_edge_weight({ "h", "g" }, 1);
+    wg.set_edge_weight({ "i", "c" }, 2);
+    wg.set_edge_weight({ "i", "g" }, 6);
+    wg.set_edge_weight({ "c", "d" }, 7);
+    wg.set_edge_weight({ "c", "f" }, 4);
+    wg.set_edge_weight({ "g", "f" }, 2);
+    wg.set_edge_weight({ "d", "f" }, 14);
+    wg.set_edge_weight({ "d", "e" }, 9);
+    wg.set_edge_weight({ "f", "e" }, 10);
+
+    auto parent = prim_mst(wg);
+    std::cout << "(undirected) Prim's Minimum Spanning Tree edges: ";
+    for (auto it = parent.cbegin(); it != parent.cend(); ++it) {
+      std::cout << "(" << it->second << "," << it->first << ") ";
+    }
+    std::cout << std::endl;
+  }
+
   th.summary();
   return 0;
 }

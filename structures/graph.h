@@ -83,7 +83,7 @@ public:
   virtual std::size_t vertex_count() const {
     return _vertices.size();
   }
-  std::unordered_set<vertex_type> vertices() const {
+  virtual std::unordered_set<vertex_type> vertices() const {
     std::unordered_set<vertex_type> ret;
     // TODO: it's better to do it with iterators as well
     for (auto edge_it = edges(); !edge_it.end(); ++edge_it) {
@@ -301,6 +301,18 @@ public:
   }
   virtual std::size_t vertex_count() const {
     return _vertices.size();
+  }
+  virtual std::unordered_set<vertex_type> vertices() const {
+    std::unordered_set<vertex_type> ret;
+    // TODO: it's better to do it with iterators as well
+    for (auto edge_it = edges(); !edge_it.end(); ++edge_it) {
+      ret.insert((*edge_it).first.first);
+      ret.insert((*edge_it).first.second);
+    }
+    for (auto it = _vertices.begin(); it != _vertices.end(); ++it) {
+      ret.insert(it->first);
+    }
+    return ret;
   }
 
   virtual void add_edge(edge_type e) {
