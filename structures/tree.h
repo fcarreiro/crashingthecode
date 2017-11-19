@@ -35,6 +35,7 @@ public:
   void visit_preorder(std::function<void(const T&)> f) const;
   void visit_inorder(std::function<void(const T&)> f) const;
   void visit_postorder(std::function<void(const T&)> f) const;
+  const T& inorder_successor_of(const T& d) const;
 
 private:
   struct Node {
@@ -47,11 +48,10 @@ private:
   };
 
   Node** _get_node_for(const T& d) const;
-  static Node** _inorder_successor_of(Node *n);
+  Node** _inorder_successor_of(Node *n) const;
+  void _remove_node(Node** nptr);
 
-  static void _remove(Node** nptr);
   static std::size_t _node_height(Node* n);
-
   static void _visit_nodes_bfs(Node* n, std::function<void(Node*)> f);
   static void _visit_nodes_preorder(Node* n, std::function<void(Node*)> f);
   static void _visit_nodes_inorder(Node* n, std::function<void(Node*)> f);
@@ -116,13 +116,32 @@ std::size_t BinarySearchTree<T>::_node_height(Node* n) {
 }
 
 template<typename T>
-typename BinarySearchTree<T>::Node** BinarySearchTree<T>::_inorder_successor_of(Node *n) {
-  assert(n != nullptr && n->right != nullptr);
-  Node** cptr = &(n->right);
-  while ((*cptr)->left != nullptr) {
-    cptr = &((*cptr)->left);
+typename BinarySearchTree<T>::Node** BinarySearchTree<T>::_inorder_successor_of(Node *n) const {
+  assert(n != nullptr);
+
+  if (n->right != nullptr) {
+    Node** cptr = &(n->right);
+
+    while ((*cptr)->left != nullptr) {
+      cptr = &((*cptr)->left);
+    }
+
+    return cptr;
+  } else {
+    auto current = &_root;
+    auto succ = current;
+
+    while (*current != nullptr) {
+      if ((*current)->data > n->data) {
+        succ = current;
+        current = &((*current)->left);
+      } else {
+        current = &((*current)->right);
+      }
+    }
+
+    return (Node**)succ;
   }
-  return cptr;
 }
 
 template<typename T>
@@ -178,7 +197,7 @@ bool BinarySearchTree<T>::remove(const T& d) {
   Node* n = *nptr;
 
   if (n != nullptr && n->data == d) {
-    _remove(nptr);
+    _remove_node(nptr);
     _size--;
     return true;
   }
@@ -187,7 +206,7 @@ bool BinarySearchTree<T>::remove(const T& d) {
 }
 
 template<typename T>
-void BinarySearchTree<T>::_remove(Node** nptr) {
+void BinarySearchTree<T>::_remove_node(Node** nptr) {
   Node* n = *nptr;
 
   if (n->left == nullptr && n->right == nullptr) {
@@ -208,7 +227,7 @@ void BinarySearchTree<T>::_remove(Node** nptr) {
     // will finish in one more call to _remove
     Node** suc = _inorder_successor_of(n);
     n->data = std::move((*suc)->data);
-    _remove(suc);
+    _remove_node(suc);
   }
 }
 
@@ -274,6 +293,15 @@ void BinarySearchTree<T>::visit_inorder(std::function<void(const T&)> f) const {
 template<typename T>
 void BinarySearchTree<T>::visit_postorder(std::function<void(const T&)> f) const {
   _visit_nodes_postorder(_root, [f](Node* n) { f(n->data); });
+}
+
+template<typename T>
+const T& BinarySearchTree<T>::inorder_successor_of(const T& d) const {
+  Node** nptr = _get_node_for(d);
+  assert(*nptr != nullptr);
+  nptr = _inorder_successor_of(*nptr);
+  assert(*nptr != nullptr);
+  return (*nptr)->data;
 }
 
 #endif

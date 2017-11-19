@@ -56,6 +56,24 @@ int main(int argc, char const *argv[]) {
     th.tassert(t.size(), (std::size_t)5, "Size is still 5");
   }
 
+  {
+    BinarySearchTree<int> t;
+    t.insert(20);
+    t.insert(8);
+    t.insert(22);
+    t.insert(4);
+    t.insert(12);
+    t.insert(10);
+    t.insert(14);
+    t.print();
+
+    std::cout << std::endl << "Inorder successors: ";
+    for (const auto &e : {14, 10, 12, 20}) {
+      std::cout << e << "->" << t.inorder_successor_of(e) << ", ";
+    }
+    std::cout << std::endl;
+  }
+
   th.summary();
   return 0;
 }
